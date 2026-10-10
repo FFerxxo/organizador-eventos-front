@@ -1161,7 +1161,7 @@
   position: relative;
   display: flex;
   height: 10px;
-  margin: 16px 4px 22px;
+  margin: 16px 4px 8px;
   border-radius: 999px;
   background: var(--rule);
   overflow: visible;
@@ -1179,6 +1179,21 @@
 .conflicto-barra .exceso {
   border-radius: 0 999px 999px 0;
   background: var(--late);
+}
+
+.interior .reprogramar-dialog .conflicto-etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 12px;
+  margin: 0 4px 18px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.interior .reprogramar-dialog .conflicto-etiquetas .exceso {
+  color: var(--late);
+  font-weight: 600;
 }
 
 /* Marca del límite del día. */

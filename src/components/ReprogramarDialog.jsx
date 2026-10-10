@@ -346,6 +346,10 @@ function ReprogramarDialog({
             <span className="exceso" style={{ width: porcentaje(planificadas - limite) }} />
             <i style={{ left: porcentaje(limite) }} />
           </div>
+          <p className="conflicto-etiquetas">
+            <span>Cabe: {enHoras(limite)}</span>
+            <span className="exceso">Te pasas: {enHoras(planificadas - limite)}</span>
+          </p>
 
           {errorGeneral && (
             <p className="alert-error" role="alert">
