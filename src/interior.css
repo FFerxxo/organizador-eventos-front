@@ -1460,22 +1460,21 @@
   text-decoration: underline;
 }
 
-/* Eventos: la franja del abejorro va en la línea del título, a la derecha. */
+/* Eventos: el abejorro va en la esquina, en la línea del título. */
 .encabezado-eventos {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px 24px;
+  gap: 16px;
+}
+
+.encabezado-eventos img {
+  flex: none;
+  width: 110px;
 }
 
 .franja-eventos {
-  flex: 1 1 420px;
-  max-width: 620px;
-}
-
-.franja-eventos img {
-  width: 84px;
+  margin-bottom: 18px;
 }
 
 .franja-progreso {

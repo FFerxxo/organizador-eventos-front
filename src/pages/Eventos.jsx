@@ -34,21 +34,22 @@ function Eventos() {
           <h1>Eventos</h1>
           <p className="sub">Todo lo que estás organizando.</p>
         </div>
-        {eventos?.length > 0 && (
-          <div className="vidrio franja franja-eventos">
-            <img src={abejorroEventos} alt="" />
-            <div>
-              <strong>
-                {eventos.length === 1
-                  ? "1 evento en marcha"
-                  : `${eventos.length} eventos en marcha`}
-              </strong>
-              <p>Cada uno con sus gestiones.</p>
-            </div>
-            <Link to="/crear">+ Crear evento</Link>
-          </div>
-        )}
+        <img src={abejorroEventos} alt="" />
       </header>
+
+      {eventos?.length > 0 && (
+        <div className="vidrio franja franja-eventos">
+          <div>
+            <strong>
+              {eventos.length === 1
+                ? "1 evento en marcha"
+                : `${eventos.length} eventos en marcha`}
+            </strong>
+            <p>Cada uno con sus gestiones.</p>
+          </div>
+          <Link to="/crear">+ Crear evento</Link>
+        </div>
+      )}
 
       {state?.mensaje && (
         <p className="alert-success" role="status">
