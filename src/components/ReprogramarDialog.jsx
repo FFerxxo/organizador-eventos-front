@@ -207,13 +207,13 @@ function ReprogramarDialog({
           <h3 id="reprogramar-titulo" ref={tituloRef} tabIndex={-1}>
             {conflicto ? "Mover a otro día" : "Reprogramar gestión"}
           </h3>
-          <p>
-            <strong>{gestion.titulo}</strong> está para el{" "}
-            {formatearFecha(gestion.fecha_objetivo)} y toma{" "}
-            {enHoras(gestion.horas_estimadas)}.
-            {conflicto &&
-              ` El ${formatearFecha(conflicto.fecha)} no te cabe: elige otro día.`}
-          </p>
+          {!conflicto && (
+            <p>
+              <strong>{gestion.titulo}</strong> está para el{" "}
+              {formatearFecha(gestion.fecha_objetivo)} y toma{" "}
+              {enHoras(gestion.horas_estimadas)}.
+            </p>
+          )}
 
           {sugeridas?.length > 0 && (
             <div className="fechas-sugeridas">
@@ -412,12 +412,9 @@ function ReprogramarDialog({
           <h3 id="reprogramar-titulo" ref={tituloRef} tabIndex={-1}>
             Reducir horas estimadas
           </h3>
-          <p>
-            <strong>{gestion.titulo}</strong> toma {enHoras(horasAReducir)}.{" "}
-            {horasLibres > 0
-              ? `El ${formatearFecha(conflicto.fecha)} ${horasLibres === 1 ? "te cabe" : "te caben"} ${enHoras(horasLibres)} más.`
-              : `El ${formatearFecha(conflicto.fecha)} ya está lleno con tus otras gestiones: es mejor moverla a otro día.`}
-          </p>
+          {horasLibres === 0 && (
+            <p>Ese día ya está lleno con tus otras gestiones. Mejor muévela a otro día.</p>
+          )}
 
           {horasLibres > 0 && (
             <div className="form-grid">
