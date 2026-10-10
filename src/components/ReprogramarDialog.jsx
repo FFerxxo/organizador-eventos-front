@@ -325,7 +325,6 @@ function ReprogramarDialog({
             </p>
           )}
 
-          <p className="conflicto-pregunta">¿Cómo quieres resolverlo?</p>
           <div className="dialog-opciones">
             <button
               type="button"
