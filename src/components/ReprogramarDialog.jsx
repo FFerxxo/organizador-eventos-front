@@ -152,6 +152,10 @@ function ReprogramarDialog({
       setErrorCampo("Escribe las nuevas horas, mayores a 0.");
       return;
     }
+    if (nuevas > horasLibres) {
+      setErrorCampo("Es más de lo que cabe ese día.");
+      return;
+    }
     if (nuevas >= horasAReducir) {
       setErrorCampo(
         `Para reducir, escribe menos de las ${enHoras(horasAReducir)} que tiene ahora.`,
