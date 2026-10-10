@@ -1076,6 +1076,148 @@
   background: #fafbfd;
 }
 
+/* Tareas del evento: una rayita de color marca el estado (no parece botón) y
+   una casilla permite elegir varias para borrarlas de una. */
+.interior .subtask-list li {
+  position: relative;
+  transition: background 0.12s;
+}
+
+.interior .subtask-list li::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  background: var(--raya, #b8bccb);
+}
+
+.interior .subtask-list li.editando::before {
+  display: none;
+}
+
+.subtask-list li.raya-pendiente {
+  --raya: #b8bccb;
+}
+
+.subtask-list li.raya-en_progreso {
+  --raya: #e0a63a;
+}
+
+.subtask-list li.raya-finalizado {
+  --raya: var(--ok);
+}
+
+.subtask-list li.raya-vencida {
+  --raya: var(--late);
+}
+
+.interior .subtask-list li.seleccionada {
+  background: #f1ebfc;
+}
+
+.casilla {
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  display: block;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+}
+
+.casilla input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.casilla .caja {
+  display: block;
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #5b2bd1;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.12s,
+    background 0.12s,
+    box-shadow 0.12s;
+}
+
+.subtask-list li:hover .caja {
+  opacity: 1;
+  box-shadow: 0 0 0 4px rgba(91, 43, 209, 0.15);
+}
+
+.subtask-list.en-seleccion .caja,
+.casilla input:focus-visible + .caja,
+.casilla input:checked + .caja {
+  opacity: 1;
+}
+
+.casilla input:focus-visible + .caja {
+  outline: 2px solid #5b2bd1;
+  outline-offset: 3px;
+}
+
+.casilla input:checked + .caja {
+  background: #5b2bd1
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.5 12.5l3.5 3.5 7.5-8' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / 100% no-repeat;
+}
+
+.interior .barra-seleccion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 12px 24px;
+  border-bottom: 1px solid #e0d4f7;
+  background: #f1ebfc;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.interior .barra-seleccion > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+}
+
+.interior .barra-seleccion .btn-danger {
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 18px;
+  background: var(--late);
+  color: #fff;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* "Seleccionar" solo se ofrece donde no hay hover (celular, tablet). */
+.solo-tactil {
+  display: none;
+}
+
+@media (hover: none) {
+  .interior .solo-tactil {
+    display: inline;
+  }
+}
+
 /* Diálogos */
 
 .interior .confirm-dialog {
@@ -1763,6 +1905,14 @@
   .interior .subtask-status {
     min-width: 0;
     text-align: left;
+  }
+
+  .interior .barra-seleccion {
+    padding: 12px 16px;
+  }
+
+  .interior .barra-seleccion > div {
+    gap: 8px 14px;
   }
 
   .interior .event-list a {
