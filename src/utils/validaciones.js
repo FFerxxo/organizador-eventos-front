@@ -41,15 +41,6 @@ export function validarEvento(valores) {
   if (estaVacio(valores.lugar)) {
     errores.lugar = "El lugar del evento es obligatorio.";
   }
-  if (estaVacio(valores.plazo_limite)) {
-    errores.plazo_limite = "Indica la fecha límite de preparación.";
-  } else if (
-    !estaVacio(valores.fecha_hora) &&
-    valores.plazo_limite > String(valores.fecha_hora).slice(0, 10)
-  ) {
-    // Las dos fechas vienen como AAAA-MM-DD, así que se comparan como texto.
-    errores.plazo_limite = "La fecha límite no puede ser después del evento.";
-  }
 
   return errores;
 }
@@ -81,16 +72,9 @@ export function validarLimiteDiario(valor) {
     return "Escribe cuántas horas por día quieres como límite.";
   }
 
-  const horas = Number(valor);
-  if (
-    Number.isNaN(horas) ||
-    horas < LIMITE_DIARIO.minimo ||
-    horas > LIMITE_DIARIO.maximo
-  ) {
-    return `El límite debe estar entre ${LIMITE_DIARIO.minimo} y ${LIMITE_DIARIO.maximo} horas por día.`;
-  }
-  if (!Number.isInteger(horas * 2)) {
-    return "Usa medias horas: 6, 6.5, 7…";
+  // Por ahora el único límite permitido es el de por defecto (6 h).
+  if (Number(valor) !== LIMITE_DIARIO.porDefecto) {
+    return `Ups, en este momento solo puedes tener ${LIMITE_DIARIO.porDefecto} h por día.`;
   }
 
   return "";

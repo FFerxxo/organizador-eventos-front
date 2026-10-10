@@ -294,10 +294,6 @@ function EventoDetalle() {
             <dt>Lugar</dt>
             <dd>{evento.lugar}</dd>
           </div>
-          <div>
-            <dt>Fecha límite de preparación</dt>
-            <dd>{formatearFecha(evento.plazo_limite)}</dd>
-          </div>
         </dl>
       )}
 

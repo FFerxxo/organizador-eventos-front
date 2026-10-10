@@ -856,11 +856,6 @@
   color: var(--muted);
 }
 
-.interior .event-list .plazo {
-  font-size: 14px;
-  white-space: nowrap;
-}
-
 /* Formularios */
 
 .interior .formulario {
@@ -1470,12 +1465,17 @@
   text-decoration: underline;
 }
 
-.franja-eventos {
-  margin-bottom: 18px;
+/* Eventos: el abejorro va en la esquina, en la línea del título. */
+.encabezado-eventos {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-.franja-eventos img {
-  width: 96px;
+.encabezado-eventos img {
+  flex: none;
+  width: 110px;
 }
 
 .franja-progreso {
@@ -1659,11 +1659,6 @@
   .interior .event-list a {
     grid-template-columns: 52px 1fr;
     padding: 18px 16px;
-  }
-
-  .interior .event-list .plazo {
-    grid-column: 2;
-    white-space: normal;
   }
 
   .interior .detail-list {

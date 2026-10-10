@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { listarEventos } from "../api/eventos";
 import abejorroEventos from "../assets/brand/abejorro-eventos.svg";
 import Layout from "../components/Layout";
-import { formatearDiaYMes, partesDeFecha, soloFecha } from "../utils/fechas";
+import { partesDeFecha, soloFecha } from "../utils/fechas";
 
 const hora = (valor) =>
   new Date(valor).toLocaleTimeString("es", {
@@ -29,25 +29,13 @@ function Eventos() {
   // Sin eventos, el único botón de crear es el del aviso de la página.
   return (
     <Layout ocultarCrear={eventos?.length === 0}>
-      <header className="encabezado">
-        <h1>Eventos</h1>
-        <p className="sub">Todo lo que estás organizando.</p>
-      </header>
-
-      {eventos?.length > 0 && (
-        <div className="vidrio franja franja-eventos">
-          <img src={abejorroEventos} alt="" />
-          <div>
-            <strong>
-              {eventos.length === 1
-                ? "1 evento en marcha"
-                : `${eventos.length} eventos en marcha`}
-            </strong>
-            <p>Cada uno con sus gestiones y su fecha límite.</p>
-          </div>
-          <Link to="/crear">+ Crear evento</Link>
+      <header className="encabezado encabezado-eventos">
+        <div>
+          <h1>Eventos</h1>
+          <p className="sub">Todo lo que estás organizando.</p>
         </div>
-      )}
+        <img src={abejorroEventos} alt="" />
+      </header>
 
       {state?.mensaje && (
         <p className="alert-success" role="status">
@@ -94,12 +82,6 @@ function Eventos() {
                       {evento.tipo}, {hora(evento.fecha_hora)}, {evento.lugar}
                     </p>
                   </div>
-                  {evento.plazo_limite && (
-                    <p className="plazo">
-                      Fecha límite de preparación:{" "}
-                      {formatearDiaYMes(evento.plazo_limite)}
-                    </p>
-                  )}
                 </Link>
               </li>
             );

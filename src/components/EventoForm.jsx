@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { erroresDeApi } from "../api/client";
 import { TIPOS_EVENTO } from "../constants";
-import { aInputFecha, aInputFechaHora } from "../utils/fechas";
+import { aInputFechaHora } from "../utils/fechas";
 import { validarEvento } from "../utils/validaciones";
 import Campo from "./Campo";
 
@@ -13,7 +13,6 @@ const CAMPOS = [
   "cliente_correo",
   "fecha_hora",
   "lugar",
-  "plazo_limite",
 ];
 
 function valoresIniciales(evento) {
@@ -26,7 +25,6 @@ function valoresIniciales(evento) {
     cliente_correo: evento?.cliente_correo ?? "",
     fecha_hora: aInputFechaHora(evento?.fecha_hora),
     lugar: evento?.lugar ?? "",
-    plazo_limite: aInputFecha(evento?.plazo_limite),
   };
 }
 
@@ -100,17 +98,6 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
         </Campo>
 
         <Campo
-          label="Lugar"
-          name="lugar"
-          placeholder="Ejemplo: Hacienda El Roble"
-          value={valores.lugar}
-          onChange={handleChange}
-          error={errores.lugar}
-        />
-      </div>
-
-      <div className="form-row">
-        <Campo
           type="datetime-local"
           label="Fecha y hora del evento"
           name="fecha_hora"
@@ -118,17 +105,16 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
           onChange={handleChange}
           error={errores.fecha_hora}
         />
-
-        <Campo
-          type="date"
-          label="Fecha límite de preparación"
-          name="plazo_limite"
-          ayuda="Día en que todo debe estar listo antes del evento."
-          value={valores.plazo_limite}
-          onChange={handleChange}
-          error={errores.plazo_limite}
-        />
       </div>
+
+      <Campo
+        label="Lugar"
+        name="lugar"
+        placeholder="Ejemplo: Hacienda El Roble"
+        value={valores.lugar}
+        onChange={handleChange}
+        error={errores.lugar}
+      />
 
       <Campo
         label="Nombre del cliente"
