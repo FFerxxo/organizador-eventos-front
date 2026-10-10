@@ -5,6 +5,15 @@ import { formatearFecha, formatearFechaConDia } from "../utils/fechas";
 import { enHoras } from "../utils/horas";
 import Campo from "./Campo";
 
+// Flechita al final de cada salida del aviso de sobrecarga.
+function Flecha() {
+  return (
+    <svg className="flecha" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  );
+}
+
 // Diálogo para cambiar la fecha y las horas de una gestión. Si el día elegido
 // queda por encima del límite diario, el backend responde 409 con las cifras y
 // aquí se ofrecen las tres salidas: mover a otro día, reducir las horas o
@@ -158,6 +167,12 @@ function ReprogramarDialog({
     conflicto?.horas_gestion ?? gestion.horas_estimadas,
   );
 
+  // Para la barra del aviso: lo planificado frente al límite del día.
+  const planificadas = Number(conflicto?.horas_planificadas ?? 0);
+  const limite = Number(conflicto?.limite_horas_dia ?? 0);
+  const escala = Math.max(planificadas, limite, 1);
+  const porcentaje = (horas) => `${(Math.max(horas, 0) / escala) * 100}%`;
+
   // Horas que todavía caben ese día con las demás gestiones ya planificadas.
   const horasLibres = conflicto
     ? Number(
@@ -289,14 +304,9 @@ function ReprogramarDialog({
       )}
 
       {paso === "conflicto" && (
-        <div>
-          <h3
-            id="reprogramar-titulo"
-            className="conflicto-alerta"
-            ref={tituloRef}
-            tabIndex={-1}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
+        <div className="conflicto">
+          <span className="conflicto-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
               <path
                 d="M12 3.5 2.5 20h19L12 3.5z"
                 fill="none"
@@ -312,6 +322,14 @@ function ReprogramarDialog({
               />
               <circle cx="12" cy="17.2" r="1.2" fill="currentColor" />
             </svg>
+          </span>
+
+          <h3
+            id="reprogramar-titulo"
+            className="conflicto-titulo"
+            ref={tituloRef}
+            tabIndex={-1}
+          >
             Ese día quedaría sobrecargado
           </h3>
 
@@ -319,34 +337,44 @@ function ReprogramarDialog({
             {conflicto.mensaje}
           </p>
 
+          <div className="conflicto-barra" aria-hidden="true">
+            <span className="dentro" style={{ width: porcentaje(Math.min(planificadas, limite)) }} />
+            <span className="exceso" style={{ width: porcentaje(planificadas - limite) }} />
+            <i style={{ left: porcentaje(limite) }} />
+          </div>
+
           {errorGeneral && (
             <p className="alert-error" role="alert">
               {errorGeneral}
             </p>
           )}
 
-          <div className="dialog-opciones">
-            <button
-              type="button"
-              className="btn-link"
-              onClick={() => irA("fecha")}
-            >
-              Mover a otro día
+          <div className="conflicto-opciones">
+            <button type="button" onClick={() => irA("fecha")}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+                <path d="M3.5 10h17M8 3v4M16 3v4" />
+              </svg>
+              <span>Mover a otro día</span>
+              <Flecha />
             </button>
             <button
               type="button"
-              className="btn-link"
               onClick={() => {
                 setHoras("");
                 irA("reducir");
               }}
             >
-              Reducir horas estimadas
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="8.5" />
+                <path d="M12 7.5V12l3 2" />
+              </svg>
+              <span>Reducir horas estimadas</span>
+              <Flecha />
             </button>
             {posponer && (
               <button
                 type="button"
-                className="btn-link"
                 disabled={guardando}
                 onClick={() =>
                   guardar({
@@ -355,20 +383,27 @@ function ReprogramarDialog({
                   })
                 }
               >
-                {guardando
-                  ? "Guardando..."
-                  : "Posponer al siguiente día disponible"}
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 6l7 6-7 6M13 6l7 6-7 6" />
+                </svg>
+                <span>
+                  {guardando
+                    ? "Guardando..."
+                    : "Posponer al siguiente día disponible"}
+                </span>
+                <Flecha />
               </button>
             )}
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={cerrar}
-              disabled={guardando}
-            >
-              Cancelar
-            </button>
           </div>
+
+          <button
+            type="button"
+            className="conflicto-cancelar"
+            onClick={cerrar}
+            disabled={guardando}
+          >
+            Cancelar
+          </button>
         </div>
       )}
 

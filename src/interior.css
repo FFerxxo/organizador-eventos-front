@@ -207,8 +207,7 @@
 
 .interior .btn.linea,
 .interior .btn-suave,
-.interior .form-actions .btn-secondary,
-.interior .dialog-opciones .btn-secondary {
+.interior .form-actions .btn-secondary {
   border: 1px solid var(--rule2);
   background: var(--white);
   color: var(--ink);
@@ -216,8 +215,7 @@
 
 .interior .btn.linea:hover,
 .interior .btn-suave:hover,
-.interior .form-actions .btn-secondary:hover,
-.interior .dialog-opciones .btn-secondary:hover {
+.interior .form-actions .btn-secondary:hover {
   background: var(--bg);
 }
 
@@ -1117,54 +1115,152 @@
   justify-content: flex-end;
 }
 
-/* Aviso de sobrecarga: el título va como alerta roja y debajo, más pequeña,
-   la frase con las cifras. */
-.interior .reprogramar-dialog .conflicto-alerta {
+/* Aviso de sobrecarga: ícono, título, la frase con las cifras, una barra que
+   muestra cuánto se pasa y las salidas como filas con ícono. */
+.interior .reprogramar-dialog .conflicto {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin: 0;
-  border-radius: 10px;
-  padding: 14px 16px;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.conflicto-icono {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
   background: var(--late-t);
   color: var(--late);
-  font-size: 19px;
+}
+
+.conflicto-icono svg {
+  width: 26px;
+  height: 26px;
+}
+
+.interior .reprogramar-dialog .conflicto-titulo {
+  color: var(--late);
+  font-size: 20px;
   text-align: center;
 }
 
-.conflicto-alerta svg {
-  flex: none;
-  width: 24px;
-  height: 24px;
-}
-
 .interior .reprogramar-dialog .conflicto-cifras {
-  margin: 14px 0 0;
+  margin: 8px 0 0;
   border: 0;
   border-radius: 0;
   padding: 0;
   background: none;
   color: var(--ink);
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 600;
   text-align: center;
+}
+
+.conflicto-barra {
+  position: relative;
+  display: flex;
+  height: 10px;
+  margin: 16px 4px 22px;
+  border-radius: 999px;
+  background: var(--rule);
+  overflow: visible;
+}
+
+.conflicto-barra span {
+  height: 100%;
+}
+
+.conflicto-barra .dentro {
+  border-radius: 999px 0 0 999px;
+  background: #e0a63a;
+}
+
+.conflicto-barra .exceso {
+  border-radius: 0 999px 999px 0;
+  background: var(--late);
+}
+
+/* Marca del límite del día. */
+.conflicto-barra i {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: var(--ink);
+}
+
+.conflicto-opciones {
+  display: grid;
+  gap: 8px;
+}
+
+.interior .conflicto-opciones button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  border: 1.5px solid var(--borde);
+  border-radius: 12px;
+  padding: 0 14px;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.interior .conflicto-opciones button:hover:not(:disabled) {
+  border-color: var(--cta);
+  background: #fbe9df;
+}
+
+.conflicto-opciones button svg {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: var(--cta);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.conflicto-opciones button span {
+  flex: 1;
+}
+
+.conflicto-opciones button .flecha {
+  width: 18px;
+  height: 18px;
+  stroke: var(--faint);
+}
+
+.interior .conflicto-cancelar {
+  align-self: center;
+  margin-top: 14px;
+  border: 0;
+  padding: 8px 14px;
+  background: none;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.interior .conflicto-cancelar:hover:not(:disabled) {
+  color: var(--ink);
+  background: none;
 }
 
 .interior .fechas-sugeridas p {
   margin: 18px 0 8px;
   font-weight: 600;
   color: var(--ink);
-}
-
-/* Las opciones del aviso miden y se leen igual; solo cambia el color. */
-.interior .dialog-opciones button {
-  width: 100%;
-  min-height: 46px;
-  border-radius: 10px;
-  padding: 0 16px;
-  font-size: 15px;
-  font-weight: 700;
 }
 
 .interior .fechas-sugeridas .btn-suave {
