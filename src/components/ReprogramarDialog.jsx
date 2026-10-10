@@ -318,10 +318,6 @@ function ReprogramarDialog({
           <p className="conflicto-cifras" role="alert">
             {conflicto.mensaje}
           </p>
-          <p className="conflicto-detalle">
-            Ese día ya tienes {enHoras(conflicto.horas_otras_gestiones)}{" "}
-            ocupadas. No caben {enHoras(conflicto.horas_gestion)} más.
-          </p>
 
           {errorGeneral && (
             <p className="alert-error" role="alert">
@@ -374,11 +370,6 @@ function ReprogramarDialog({
               Cancelar
             </button>
           </div>
-          {posponer === null && (
-            <p className="field-help">
-              No hay un día disponible para posponer antes del evento.
-            </p>
-          )}
         </div>
       )}
 

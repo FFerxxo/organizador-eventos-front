@@ -1151,11 +1151,6 @@
   text-align: center;
 }
 
-.interior .reprogramar-dialog .conflicto-detalle {
-  margin: 4px 0 0;
-  text-align: center;
-}
-
 .interior .reprogramar-dialog .conflicto-pregunta,
 .interior .fechas-sugeridas p {
   margin: 18px 0 8px;
@@ -1465,17 +1460,22 @@
   text-decoration: underline;
 }
 
-/* Eventos: el abejorro va en la esquina, en la línea del título. */
+/* Eventos: la franja del abejorro va en la línea del título, a la derecha. */
 .encabezado-eventos {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 16px 24px;
 }
 
-.encabezado-eventos img {
-  flex: none;
-  width: 110px;
+.franja-eventos {
+  flex: 1 1 420px;
+  max-width: 620px;
+}
+
+.franja-eventos img {
+  width: 84px;
 }
 
 .franja-progreso {
