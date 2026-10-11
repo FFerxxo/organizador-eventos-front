@@ -381,7 +381,7 @@ function EventoDetalle() {
           {subtareas.length > 0 && (
             <button
               type="button"
-              className="enlace solo-tactil"
+              className="enlace"
               onClick={() =>
                 modoSeleccion ? salirDeSeleccion() : setModoSeleccion(true)
               }
@@ -473,7 +473,9 @@ function EventoDetalle() {
                   key={subtarea.id}
                   className={`${claseRaya(subtarea, hoy)}${seleccionadas.has(subtarea.id) ? " seleccionada" : ""}`}
                 >
-                  <label className="casilla">
+                  {/* Espacio reservado: la casilla flota encima, en su zona. */}
+                  <span aria-hidden="true" />
+                  <label className="zona-casilla">
                     <input
                       type="checkbox"
                       aria-label={`Seleccionar ${subtarea.titulo}`}

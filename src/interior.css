@@ -1049,14 +1049,14 @@
 .interior .subtask-status,
 .interior .subtask-status.en_progreso,
 .interior .subtask-status.finalizado {
-  min-width: 92px;
+  min-width: 104px;
   padding: 0;
   border-radius: 0;
   background: none;
   font-size: 14.5px;
   font-weight: 700;
   color: var(--muted);
-  text-align: right;
+  text-align: left;
 }
 
 .interior .subtask-status.en_progreso {
@@ -1117,16 +1117,23 @@
   background: #f1ebfc;
 }
 
-.casilla {
-  -webkit-tap-highlight-color: transparent;
-  position: relative;
-  display: block;
-  width: 22px;
-  height: 22px;
+/* La casilla solo aparece cuando el mouse pasa por esta zona (la columna
+   izquierda de la fila); el clic en cualquier punto de la zona la marca. */
+.zona-casilla {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 56px;
+  padding-left: 24px;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.casilla input {
+.zona-casilla input {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -1136,7 +1143,7 @@
   cursor: pointer;
 }
 
-.casilla .caja {
+.zona-casilla .caja {
   display: block;
   box-sizing: border-box;
   width: 22px;
@@ -1152,23 +1159,23 @@
     box-shadow 0.12s;
 }
 
-.subtask-list li:hover .caja {
+.zona-casilla:hover .caja {
   opacity: 1;
   box-shadow: 0 0 0 4px rgba(91, 43, 209, 0.15);
 }
 
 .subtask-list.en-seleccion .caja,
-.casilla input:focus-visible + .caja,
-.casilla input:checked + .caja {
+.zona-casilla input:focus-visible + .caja,
+.zona-casilla input:checked + .caja {
   opacity: 1;
 }
 
-.casilla input:focus-visible + .caja {
+.zona-casilla input:focus-visible + .caja {
   outline: 2px solid #5b2bd1;
   outline-offset: 3px;
 }
 
-.casilla input:checked + .caja {
+.zona-casilla input:checked + .caja {
   background: #5b2bd1
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.5 12.5l3.5 3.5 7.5-8' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
     center / 100% no-repeat;
@@ -1205,17 +1212,6 @@
   font-size: 14.5px;
   font-weight: 700;
   cursor: pointer;
-}
-
-/* "Seleccionar" solo se ofrece donde no hay hover (celular, tablet). */
-.solo-tactil {
-  display: none;
-}
-
-@media (hover: none) {
-  .interior .solo-tactil {
-    display: inline;
-  }
 }
 
 /* Diálogos */
@@ -1905,6 +1901,11 @@
   .interior .subtask-status {
     min-width: 0;
     text-align: left;
+  }
+
+  .zona-casilla {
+    width: 52px;
+    padding-left: 16px;
   }
 
   .interior .barra-seleccion {
