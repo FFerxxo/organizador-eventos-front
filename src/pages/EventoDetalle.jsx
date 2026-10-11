@@ -12,17 +12,26 @@ import {
 } from "../api/eventos";
 import ConfirmDialog from "../components/ConfirmDialog";
 import EventoForm from "../components/EventoForm";
-import IconoEstado from "../components/IconoEstado";
 import Layout from "../components/Layout";
 import ReprogramarDialog from "../components/ReprogramarDialog";
 import SubtareaForm from "../components/SubtareaForm";
 import { claseEstado, etiquetaEstado } from "../constants";
-import { formatearFecha, formatearFechaHora } from "../utils/fechas";
+import { fechaDeHoy, formatearFecha, formatearFechaHora } from "../utils/fechas";
 import { mensajeReprogramada } from "../utils/gestiones";
 import { enHoras } from "../utils/horas";
 
+// Clase de la rayita de color del borde izquierdo de cada tarea.
+function claseRaya(subtarea, hoy) {
+  const estado = claseEstado(subtarea.estado);
+  if (estado === "finalizado") return "raya-finalizado";
+  if (subtarea.fecha_objetivo < hoy) return "raya-vencida";
+  if (estado === "en_progreso") return "raya-en_progreso";
+  return "raya-pendiente";
+}
+
 function EventoDetalle() {
   const { id } = useParams();
+  const hoy = fechaDeHoy();
   const { state, pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -48,6 +57,13 @@ function EventoDetalle() {
   const [subtareaAEliminar, setSubtareaAEliminar] = useState(null);
   const [eliminandoSubtarea, setEliminandoSubtarea] = useState(false);
   const [errorEliminarSubtarea, setErrorEliminarSubtarea] = useState("");
+  // Selección para borrar varias tareas de una. `modoSeleccion` es el que se
+  // activa con el botón "Seleccionar" en pantallas táctiles, donde no hay hover.
+  const [seleccionadas, setSeleccionadas] = useState(() => new Set());
+  const [modoSeleccion, setModoSeleccion] = useState(false);
+  const [confirmandoVarias, setConfirmandoVarias] = useState(false);
+  const [eliminandoVarias, setEliminandoVarias] = useState(false);
+  const [errorSubtareas, setErrorSubtareas] = useState("");
 
   // El aviso que llega al crear el evento se muestra una sola vez: se quita
   // del historial para que no vuelva a salir al recargar la página.
@@ -146,6 +162,11 @@ function EventoDetalle() {
     setErrorEliminarSubtarea("");
     try {
       await eliminarSubtarea(subtareaAEliminar.id);
+      setSeleccionadas((actuales) => {
+        const nuevas = new Set(actuales);
+        nuevas.delete(subtareaAEliminar.id);
+        return nuevas;
+      });
       setDatos((actuales) => ({
         ...actuales,
         subtareas: actuales.subtareas.filter(
@@ -160,6 +181,63 @@ function EventoDetalle() {
     } finally {
       setEliminandoSubtarea(false);
     }
+  }
+
+  const enSeleccion = modoSeleccion || seleccionadas.size > 0;
+
+  function alternarSeleccion(subtareaId) {
+    setSeleccionadas((actuales) => {
+      const nuevas = new Set(actuales);
+      if (nuevas.has(subtareaId)) nuevas.delete(subtareaId);
+      else nuevas.add(subtareaId);
+      return nuevas;
+    });
+  }
+
+  function salirDeSeleccion() {
+    setSeleccionadas(new Set());
+    setModoSeleccion(false);
+  }
+
+  async function eliminarSeleccionadas() {
+    const ids = [...seleccionadas];
+    setEliminandoVarias(true);
+
+    const resultados = await Promise.allSettled(
+      ids.map((subtareaId) => eliminarSubtarea(subtareaId)),
+    );
+    const borradas = ids.filter((_, i) => resultados[i].status === "fulfilled");
+    const fallidas = ids.filter((_, i) => resultados[i].status === "rejected");
+
+    setDatos((actuales) => ({
+      ...actuales,
+      subtareas: actuales.subtareas.filter(
+        (subtarea) => !borradas.includes(subtarea.id),
+      ),
+    }));
+    setMensaje("");
+    setConfirmandoVarias(false);
+    setEliminandoVarias(false);
+
+    if (fallidas.length === 0) {
+      salirDeSeleccion();
+      setErrorSubtareas("");
+      setMensajeSubtareas(
+        borradas.length === 1
+          ? "Listo. Se eliminó 1 tarea."
+          : `Listo. Se eliminaron ${borradas.length} tareas.`,
+      );
+      return;
+    }
+
+    // Se quedan seleccionadas solo las que fallaron, para reintentar.
+    setSeleccionadas(new Set(fallidas));
+    setMensajeSubtareas("");
+    setErrorSubtareas(
+      borradas.length === 0
+        ? "No se pudieron eliminar. Vuelve a intentarlo."
+        : `Se eliminaron ${borradas.length} de ${ids.length}. Las otras no se pudieron eliminar, vuelve a intentarlo.`,
+    );
   }
 
   function cancelarEliminarSubtarea() {
@@ -299,12 +377,23 @@ function EventoDetalle() {
 
       <section className="panel hoy-group">
         <div className="grupo-cabecera section-header">
-          <h2>Gestiones</h2>
+          <h2>Mis tareas</h2>
+          {subtareas.length > 0 && (
+            <button
+              type="button"
+              className="enlace"
+              onClick={() =>
+                modoSeleccion ? salirDeSeleccion() : setModoSeleccion(true)
+              }
+            >
+              {modoSeleccion ? "Listo" : "Seleccionar"}
+            </button>
+          )}
           {subtareas.length > 0 && (
             <span className="grupo-resumen status">
               {subtareas.length === 1
-                ? "1 gestión"
-                : `${subtareas.length} gestiones`}
+                ? "1 tarea"
+                : `${subtareas.length} tareas`}
               , {enHoras(horasTotales)} estimadas
             </span>
           )}
@@ -316,14 +405,63 @@ function EventoDetalle() {
           </p>
         )}
 
+        {errorSubtareas && (
+          <p className="alert-error" role="alert">
+            {errorSubtareas}
+          </p>
+        )}
+
+        {enSeleccion && subtareas.length > 0 && (
+          <div
+            className="barra-seleccion"
+            role="region"
+            aria-label="Tareas seleccionadas"
+          >
+            <span aria-live="polite">
+              {seleccionadas.size === 1
+                ? "1 seleccionada"
+                : `${seleccionadas.size} seleccionadas`}
+            </span>
+            <div>
+              <button
+                type="button"
+                className="enlace"
+                onClick={() =>
+                  setSeleccionadas(new Set(subtareas.map((s) => s.id)))
+                }
+              >
+                Seleccionar todas
+              </button>
+              <button
+                type="button"
+                className="enlace"
+                onClick={salirDeSeleccion}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn-danger"
+                disabled={seleccionadas.size === 0}
+                onClick={() => {
+                  setErrorSubtareas("");
+                  setConfirmandoVarias(true);
+                }}
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        )}
+
         {subtareas.length === 0 ? (
-          <p className="grupo-vacio">Este evento todavía no tiene gestiones.</p>
+          <p className="grupo-vacio">Este evento todavía no tiene tareas.</p>
         ) : (
-          <ul className="subtask-list">
+          <ul className={`subtask-list${enSeleccion ? " en-seleccion" : ""}`}>
             {subtareas.map((subtarea) =>
               editandoSubtarea === subtarea.id ? (
                 <li key={subtarea.id} className="editando">
-                  <h3>Editar gestión</h3>
+                  <h3>Editar tarea</h3>
                   <SubtareaForm
                     subtarea={subtarea}
                     onSubmit={(cambios) => guardarSubtarea(subtarea, cambios)}
@@ -331,8 +469,21 @@ function EventoDetalle() {
                   />
                 </li>
               ) : (
-                <li key={subtarea.id}>
-                  <IconoEstado estado={subtarea.estado} />
+                <li
+                  key={subtarea.id}
+                  className={`${claseRaya(subtarea, hoy)}${seleccionadas.has(subtarea.id) ? " seleccionada" : ""}`}
+                >
+                  {/* Espacio reservado: la casilla flota encima, en su zona. */}
+                  <span aria-hidden="true" />
+                  <label className="zona-casilla">
+                    <input
+                      type="checkbox"
+                      aria-label={`Seleccionar ${subtarea.titulo}`}
+                      checked={seleccionadas.has(subtarea.id)}
+                      onChange={() => alternarSeleccion(subtarea.id)}
+                    />
+                    <span className="caja" aria-hidden="true" />
+                  </label>
                   <div>
                     <strong>{subtarea.titulo}</strong>
                     {subtarea.descripcion && <p>{subtarea.descripcion}</p>}
@@ -393,7 +544,7 @@ function EventoDetalle() {
       </section>
 
       <section className="panel panel-relleno">
-        <h2>Agregar gestión</h2>
+        <h2>Agregar tarea</h2>
         <SubtareaForm onSubmit={agregarSubtarea} />
       </section>
 
@@ -419,7 +570,7 @@ function EventoDetalle() {
 
       <ConfirmDialog
         abierto={subtareaAEliminar !== null}
-        titulo="¿Deseas eliminar esta gestión?"
+        titulo="¿Deseas eliminar esta tarea?"
         mensaje={`Esta acción no se puede deshacer. Se eliminará "${subtareaAEliminar?.titulo ?? ""}".`}
         textoConfirmar="Sí, eliminar"
         procesando={eliminandoSubtarea}
@@ -429,9 +580,23 @@ function EventoDetalle() {
       />
 
       <ConfirmDialog
+        abierto={confirmandoVarias}
+        titulo={
+          seleccionadas.size === 1
+            ? "¿Eliminar esta tarea?"
+            : `¿Eliminar ${seleccionadas.size} tareas?`
+        }
+        mensaje="Esta acción no se puede deshacer."
+        textoConfirmar="Sí, eliminar"
+        procesando={eliminandoVarias}
+        onConfirmar={eliminarSeleccionadas}
+        onCancelar={() => setConfirmandoVarias(false)}
+      />
+
+      <ConfirmDialog
         abierto={confirmando}
         titulo="¿Deseas eliminar este evento?"
-        mensaje={`Esta acción no se puede deshacer. Se eliminará "${evento.nombre}" junto con sus gestiones.`}
+        mensaje={`Esta acción no se puede deshacer. Se eliminará "${evento.nombre}" junto con sus tareas.`}
         textoConfirmar="Sí, eliminar"
         procesando={eliminando}
         error={errorEliminar}

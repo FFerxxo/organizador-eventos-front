@@ -51,6 +51,12 @@ export function formatearFechaHora(valor) {
   });
 }
 
+// Hoy como "AAAA-MM-DD", en la zona horaria de quien usa la app.
+export function fechaDeHoy() {
+  const ahora = new Date();
+  return `${ahora.getFullYear()}-${dosDigitos(ahora.getMonth() + 1)}-${dosDigitos(ahora.getDate())}`;
+}
+
 // Días completos entre dos fechas sin hora ("AAAA-MM-DD"). Negativo si
 // `hasta` es anterior a `desde`.
 export function diasEntre(desde, hasta) {

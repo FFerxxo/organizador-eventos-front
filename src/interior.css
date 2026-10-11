@@ -207,8 +207,7 @@
 
 .interior .btn.linea,
 .interior .btn-suave,
-.interior .form-actions .btn-secondary,
-.interior .dialog-opciones .btn-secondary {
+.interior .form-actions .btn-secondary {
   border: 1px solid var(--rule2);
   background: var(--white);
   color: var(--ink);
@@ -216,8 +215,7 @@
 
 .interior .btn.linea:hover,
 .interior .btn-suave:hover,
-.interior .form-actions .btn-secondary:hover,
-.interior .dialog-opciones .btn-secondary:hover {
+.interior .form-actions .btn-secondary:hover {
   background: var(--bg);
 }
 
@@ -1051,14 +1049,14 @@
 .interior .subtask-status,
 .interior .subtask-status.en_progreso,
 .interior .subtask-status.finalizado {
-  min-width: 92px;
+  min-width: 104px;
   padding: 0;
   border-radius: 0;
   background: none;
   font-size: 14.5px;
   font-weight: 700;
   color: var(--muted);
-  text-align: right;
+  text-align: left;
 }
 
 .interior .subtask-status.en_progreso {
@@ -1076,6 +1074,144 @@
 .interior .subtask-list li.editando {
   display: block;
   background: #fafbfd;
+}
+
+/* Tareas del evento: una rayita de color marca el estado (no parece botón) y
+   una casilla permite elegir varias para borrarlas de una. */
+.interior .subtask-list li {
+  position: relative;
+  transition: background 0.12s;
+}
+
+.interior .subtask-list li::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  background: var(--raya, #b8bccb);
+}
+
+.interior .subtask-list li.editando::before {
+  display: none;
+}
+
+.subtask-list li.raya-pendiente {
+  --raya: #b8bccb;
+}
+
+.subtask-list li.raya-en_progreso {
+  --raya: #e0a63a;
+}
+
+.subtask-list li.raya-finalizado {
+  --raya: var(--ok);
+}
+
+.subtask-list li.raya-vencida {
+  --raya: var(--late);
+}
+
+.interior .subtask-list li.seleccionada {
+  background: #f1ebfc;
+}
+
+/* La casilla solo aparece cuando el mouse pasa por esta zona (la columna
+   izquierda de la fila); el clic en cualquier punto de la zona la marca. */
+.zona-casilla {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 56px;
+  padding-left: 24px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.zona-casilla input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.zona-casilla .caja {
+  display: block;
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #5b2bd1;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.12s,
+    background 0.12s,
+    box-shadow 0.12s;
+}
+
+.zona-casilla:hover .caja {
+  opacity: 1;
+  box-shadow: 0 0 0 4px rgba(91, 43, 209, 0.15);
+}
+
+.subtask-list.en-seleccion .caja,
+.zona-casilla input:focus-visible + .caja,
+.zona-casilla input:checked + .caja {
+  opacity: 1;
+}
+
+.zona-casilla input:focus-visible + .caja {
+  outline: 2px solid #5b2bd1;
+  outline-offset: 3px;
+}
+
+.zona-casilla input:checked + .caja {
+  background: #5b2bd1
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.5 12.5l3.5 3.5 7.5-8' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / 100% no-repeat;
+}
+
+.interior .barra-seleccion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 12px 24px;
+  border-bottom: 1px solid #e0d4f7;
+  background: #f1ebfc;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.interior .barra-seleccion > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+}
+
+.interior .barra-seleccion .btn-danger {
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 18px;
+  background: var(--late);
+  color: #fff;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 /* Diálogos */
@@ -1117,60 +1253,167 @@
   justify-content: flex-end;
 }
 
-/* Aviso de sobrecarga: el título va como alerta roja y debajo, más pequeña,
-   la frase con las cifras. */
-.interior .reprogramar-dialog .conflicto-alerta {
+/* Aviso de sobrecarga: ícono, título, la frase con las cifras, una barra que
+   muestra cuánto se pasa y las salidas como filas con ícono. */
+.interior .reprogramar-dialog .conflicto {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin: 0;
-  border-radius: 10px;
-  padding: 14px 16px;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.conflicto-icono {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
   background: var(--late-t);
   color: var(--late);
-  font-size: 19px;
+}
+
+.conflicto-icono svg {
+  width: 26px;
+  height: 26px;
+}
+
+.interior .reprogramar-dialog .conflicto-titulo {
+  color: var(--late);
+  font-size: 20px;
   text-align: center;
 }
 
-.conflicto-alerta svg {
-  flex: none;
-  width: 24px;
-  height: 24px;
-}
-
 .interior .reprogramar-dialog .conflicto-cifras {
-  margin: 14px 0 0;
+  margin: 8px 0 0;
   border: 0;
   border-radius: 0;
   padding: 0;
   background: none;
   color: var(--ink);
-  font-size: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.conflicto-barra {
+  position: relative;
+  display: flex;
+  height: 10px;
+  margin: 16px 4px 8px;
+  border-radius: 999px;
+  background: var(--rule);
+  overflow: visible;
+}
+
+.conflicto-barra span {
+  height: 100%;
+}
+
+.conflicto-barra .dentro {
+  border-radius: 999px 0 0 999px;
+  background: #e0a63a;
+}
+
+.conflicto-barra .exceso {
+  border-radius: 0 999px 999px 0;
+  background: var(--late);
+}
+
+.interior .reprogramar-dialog .conflicto-etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px 12px;
+  margin: 0 4px 18px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.interior .reprogramar-dialog .conflicto-etiquetas .exceso {
+  color: var(--late);
+  font-weight: 600;
+}
+
+/* Marca del límite del día. */
+.conflicto-barra i {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: var(--ink);
+}
+
+.conflicto-opciones {
+  display: grid;
+  gap: 8px;
+}
+
+.interior .conflicto-opciones button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  border: 1.5px solid var(--borde);
+  border-radius: 12px;
+  padding: 0 14px;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 15px;
   font-weight: 700;
-  text-align: center;
+  text-align: left;
 }
 
-.interior .reprogramar-dialog .conflicto-detalle {
-  margin: 4px 0 0;
-  text-align: center;
+.interior .conflicto-opciones button:hover:not(:disabled) {
+  border-color: var(--cta);
+  background: #fbe9df;
 }
 
-.interior .reprogramar-dialog .conflicto-pregunta,
+.conflicto-opciones button svg {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: var(--cta);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.conflicto-opciones button span {
+  flex: 1;
+}
+
+.conflicto-opciones button .flecha {
+  width: 18px;
+  height: 18px;
+  stroke: var(--faint);
+}
+
+.interior .conflicto-cancelar {
+  align-self: center;
+  margin-top: 14px;
+  border: 0;
+  padding: 8px 14px;
+  background: none;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.interior .conflicto-cancelar:hover:not(:disabled) {
+  color: var(--ink);
+  background: none;
+}
+
 .interior .fechas-sugeridas p {
   margin: 18px 0 8px;
   font-weight: 600;
   color: var(--ink);
-}
-
-/* Las opciones del aviso miden y se leen igual; solo cambia el color. */
-.interior .dialog-opciones button {
-  width: 100%;
-  min-height: 46px;
-  border-radius: 10px;
-  padding: 0 16px;
-  font-size: 15px;
-  font-weight: 700;
 }
 
 .interior .fechas-sugeridas .btn-suave {
@@ -1478,6 +1721,10 @@
   width: 110px;
 }
 
+.franja-eventos {
+  margin-bottom: 18px;
+}
+
 .franja-progreso {
   margin-bottom: 18px;
 }
@@ -1654,6 +1901,19 @@
   .interior .subtask-status {
     min-width: 0;
     text-align: left;
+  }
+
+  .zona-casilla {
+    width: 52px;
+    padding-left: 16px;
+  }
+
+  .interior .barra-seleccion {
+    padding: 12px 16px;
+  }
+
+  .interior .barra-seleccion > div {
+    gap: 8px 14px;
   }
 
   .interior .event-list a {

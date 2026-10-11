@@ -5,6 +5,15 @@ import { formatearFecha, formatearFechaConDia } from "../utils/fechas";
 import { enHoras } from "../utils/horas";
 import Campo from "./Campo";
 
+// Flechita al final de cada salida del aviso de sobrecarga.
+function Flecha() {
+  return (
+    <svg className="flecha" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  );
+}
+
 // Diálogo para cambiar la fecha y las horas de una gestión. Si el día elegido
 // queda por encima del límite diario, el backend responde 409 con las cifras y
 // aquí se ofrecen las tres salidas: mover a otro día, reducir las horas o
@@ -143,6 +152,10 @@ function ReprogramarDialog({
       setErrorCampo("Escribe las nuevas horas, mayores a 0.");
       return;
     }
+    if (nuevas > horasLibres) {
+      setErrorCampo("Es más de lo que cabe ese día.");
+      return;
+    }
     if (nuevas >= horasAReducir) {
       setErrorCampo(
         `Para reducir, escribe menos de las ${enHoras(horasAReducir)} que tiene ahora.`,
@@ -157,6 +170,12 @@ function ReprogramarDialog({
   const horasAReducir = Number(
     conflicto?.horas_gestion ?? gestion.horas_estimadas,
   );
+
+  // Para la barra del aviso: lo planificado frente al límite del día.
+  const planificadas = Number(conflicto?.horas_planificadas ?? 0);
+  const limite = Number(conflicto?.limite_horas_dia ?? 0);
+  const escala = Math.max(planificadas, limite, 1);
+  const porcentaje = (horas) => `${(Math.max(horas, 0) / escala) * 100}%`;
 
   // Horas que todavía caben ese día con las demás gestiones ya planificadas.
   const horasLibres = conflicto
@@ -192,13 +211,13 @@ function ReprogramarDialog({
           <h3 id="reprogramar-titulo" ref={tituloRef} tabIndex={-1}>
             {conflicto ? "Mover a otro día" : "Reprogramar gestión"}
           </h3>
-          <p>
-            <strong>{gestion.titulo}</strong> está para el{" "}
-            {formatearFecha(gestion.fecha_objetivo)} y toma{" "}
-            {enHoras(gestion.horas_estimadas)}.
-            {conflicto &&
-              ` El ${formatearFecha(conflicto.fecha)} no te cabe: elige otro día.`}
-          </p>
+          {!conflicto && (
+            <p>
+              <strong>{gestion.titulo}</strong> está para el{" "}
+              {formatearFecha(gestion.fecha_objetivo)} y toma{" "}
+              {enHoras(gestion.horas_estimadas)}.
+            </p>
+          )}
 
           {sugeridas?.length > 0 && (
             <div className="fechas-sugeridas">
@@ -289,14 +308,9 @@ function ReprogramarDialog({
       )}
 
       {paso === "conflicto" && (
-        <div>
-          <h3
-            id="reprogramar-titulo"
-            className="conflicto-alerta"
-            ref={tituloRef}
-            tabIndex={-1}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
+        <div className="conflicto">
+          <span className="conflicto-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
               <path
                 d="M12 3.5 2.5 20h19L12 3.5z"
                 fill="none"
@@ -312,15 +326,29 @@ function ReprogramarDialog({
               />
               <circle cx="12" cy="17.2" r="1.2" fill="currentColor" />
             </svg>
+          </span>
+
+          <h3
+            id="reprogramar-titulo"
+            className="conflicto-titulo"
+            ref={tituloRef}
+            tabIndex={-1}
+          >
             Ese día quedaría sobrecargado
           </h3>
 
           <p className="conflicto-cifras" role="alert">
             {conflicto.mensaje}
           </p>
-          <p className="conflicto-detalle">
-            Ese día ya tienes {enHoras(conflicto.horas_otras_gestiones)}{" "}
-            ocupadas. No caben {enHoras(conflicto.horas_gestion)} más.
+
+          <div className="conflicto-barra" aria-hidden="true">
+            <span className="dentro" style={{ width: porcentaje(Math.min(planificadas, limite)) }} />
+            <span className="exceso" style={{ width: porcentaje(planificadas - limite) }} />
+            <i style={{ left: porcentaje(limite) }} />
+          </div>
+          <p className="conflicto-etiquetas">
+            <span>Cabe: {enHoras(limite)}</span>
+            <span className="exceso">Te pasas: {enHoras(planificadas - limite)}</span>
           </p>
 
           {errorGeneral && (
@@ -329,29 +357,32 @@ function ReprogramarDialog({
             </p>
           )}
 
-          <p className="conflicto-pregunta">¿Cómo quieres resolverlo?</p>
-          <div className="dialog-opciones">
-            <button
-              type="button"
-              className="btn-link"
-              onClick={() => irA("fecha")}
-            >
-              Mover a otro día
+          <div className="conflicto-opciones">
+            <button type="button" onClick={() => irA("fecha")}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+                <path d="M3.5 10h17M8 3v4M16 3v4" />
+              </svg>
+              <span>Mover a otro día</span>
+              <Flecha />
             </button>
             <button
               type="button"
-              className="btn-link"
               onClick={() => {
                 setHoras("");
                 irA("reducir");
               }}
             >
-              Reducir horas estimadas
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="8.5" />
+                <path d="M12 7.5V12l3 2" />
+              </svg>
+              <span>Reducir horas estimadas</span>
+              <Flecha />
             </button>
             {posponer && (
               <button
                 type="button"
-                className="btn-link"
                 disabled={guardando}
                 onClick={() =>
                   guardar({
@@ -360,25 +391,27 @@ function ReprogramarDialog({
                   })
                 }
               >
-                {guardando
-                  ? "Guardando..."
-                  : "Posponer al siguiente día disponible"}
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 6l7 6-7 6M13 6l7 6-7 6" />
+                </svg>
+                <span>
+                  {guardando
+                    ? "Guardando..."
+                    : "Posponer al siguiente día disponible"}
+                </span>
+                <Flecha />
               </button>
             )}
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={cerrar}
-              disabled={guardando}
-            >
-              Cancelar
-            </button>
           </div>
-          {posponer === null && (
-            <p className="field-help">
-              No hay un día disponible para posponer antes del evento.
-            </p>
-          )}
+
+          <button
+            type="button"
+            className="conflicto-cancelar"
+            onClick={cerrar}
+            disabled={guardando}
+          >
+            Cancelar
+          </button>
         </div>
       )}
 
@@ -387,12 +420,9 @@ function ReprogramarDialog({
           <h3 id="reprogramar-titulo" ref={tituloRef} tabIndex={-1}>
             Reducir horas estimadas
           </h3>
-          <p>
-            <strong>{gestion.titulo}</strong> toma {enHoras(horasAReducir)}.{" "}
-            {horasLibres > 0
-              ? `El ${formatearFecha(conflicto.fecha)} ${horasLibres === 1 ? "te cabe" : "te caben"} ${enHoras(horasLibres)} más.`
-              : `El ${formatearFecha(conflicto.fecha)} ya está lleno con tus otras gestiones: es mejor moverla a otro día.`}
-          </p>
+          {horasLibres === 0 && (
+            <p>Ese día ya está lleno con tus otras gestiones. Mejor muévela a otro día.</p>
+          )}
 
           {horasLibres > 0 && (
             <div className="form-grid">

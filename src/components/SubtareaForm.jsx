@@ -160,7 +160,7 @@ function SubtareaForm({ subtarea, onSubmit, onCancelar }) {
               : "Guardar cambios"
             : enviando
               ? "Agregando..."
-              : "Agregar gestión"}
+              : "Agregar tarea"}
         </button>
       </div>
     </form>

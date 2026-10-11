@@ -677,27 +677,6 @@ a:focus {
   font-weight: 800;
 }
 
-.dialog-opciones {
-  display: grid;
-  gap: 10px;
-}
-
-.dialog-opciones button {
-  width: 100%;
-  font: inherit;
-  font-weight: 900;
-  text-align: center;
-}
-
-.dialog-opciones .btn-secondary {
-  border: none;
-  border-radius: 16px;
-  padding: 13px 18px;
-  background: var(--soft-purple);
-  color: var(--primary-dark);
-  cursor: pointer;
-}
-
 .fechas-sugeridas p {
   margin: 16px 0 8px;
   color: var(--text);
