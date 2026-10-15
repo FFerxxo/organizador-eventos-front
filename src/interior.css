@@ -569,6 +569,19 @@
   margin: 22px 0 0;
 }
 
+/* Aviso con un enlace de acción al final (Deshacer, Posponer a otro día). */
+.interior .aviso-con-accion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 16px;
+}
+
+.interior .aviso-con-accion .enlace {
+  color: inherit;
+}
+
 .interior .hoy-group {
   margin-top: 30px;
   overflow: hidden;
@@ -681,6 +694,11 @@
   align-items: center;
   justify-content: flex-end;
   gap: 14px;
+}
+
+.fila-botones {
+  display: flex;
+  gap: 8px;
 }
 
 .cuando {

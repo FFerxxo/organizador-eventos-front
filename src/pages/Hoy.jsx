@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { listarEventos, obtenerGestionesHoy } from "../api/eventos";
+import { ApiError } from "../api/client";
+import {
+  actualizarSubtarea,
+  ejecutarSubtarea,
+  listarEventos,
+  obtenerGestionesHoy,
+} from "../api/eventos";
 import { obtenerLimiteDiario } from "../api/limite";
 import abejorroEscudo from "../assets/brand/abejorro-escudo.svg";
 import IconoEstado from "../components/IconoEstado";
@@ -20,7 +26,11 @@ import {
   partesDeFecha,
   soloFecha,
 } from "../utils/fechas";
-import { mensajeReprogramada } from "../utils/gestiones";
+import {
+  avanceDe,
+  mensajeHecha,
+  mensajeReprogramada,
+} from "../utils/gestiones";
 import { enHoras } from "../utils/horas";
 
 // Los grupos se muestran en este orden: primero lo vencido, después lo de
@@ -132,12 +142,25 @@ function Hoy() {
   const [reprogramando, setReprogramando] = useState(null);
   const [mensaje, setMensaje] = useState("");
   const mensajeRef = useRef(null);
+  // Gestión recién marcada como hecha, para poder deshacerlo desde el aviso.
+  const [hecha, setHecha] = useState(null);
+  // Id de la gestión que se está guardando (Hecha o Deshacer).
+  const [guardandoId, setGuardandoId] = useState(null);
+  const [errorAccion, setErrorAccion] = useState("");
+  // Deshacer chocó con el límite del día: { gestion, estado, conflicto }.
+  const [reabrir, setReabrir] = useState(null);
+  const [moviendoAlReabrir, setMoviendoAlReabrir] = useState(false);
+  const reabrirRef = useRef(null);
 
-  // La gestión reprogramada puede cambiar de grupo y su botón desaparece de
-  // donde estaba: el foco pasa al aviso de confirmación.
+  // La gestión reprogramada o hecha puede cambiar de grupo y su botón
+  // desaparece de donde estaba: el foco pasa al aviso de confirmación.
   useEffect(() => {
     if (mensaje) mensajeRef.current?.focus();
   }, [mensaje]);
+
+  useEffect(() => {
+    if (reabrir) reabrirRef.current?.focus();
+  }, [reabrir]);
 
   useEffect(() => {
     let activo = true;
@@ -166,7 +189,7 @@ function Hoy() {
   }, [intento, eventoId, estado]);
 
   function cambiarFiltro(nombre, valor) {
-    setMensaje("");
+    limpiarAvisos();
     setParametros((actuales) => {
       const nuevos = new URLSearchParams(actuales);
       if (valor) nuevos.set(nombre, valor);
@@ -176,7 +199,7 @@ function Hoy() {
   }
 
   function limpiarFiltros() {
-    setMensaje("");
+    limpiarAvisos();
     setError("");
     setParametros({});
   }
@@ -187,20 +210,95 @@ function Hoy() {
     setIntento((actual) => actual + 1);
   }
 
-  // Tras reprogramar se vuelve a pedir /hoy para que la gestión salga en el
-  // grupo y en el orden que le da el backend, sin recargar la página.
-  async function alReprogramar(actualizada) {
-    setReprogramando(null);
+  function limpiarAvisos() {
+    setMensaje("");
+    setHecha(null);
+    setErrorAccion("");
+    setReabrir(null);
+  }
+
+  // Después de cada cambio se vuelve a pedir /hoy para que la gestión salga
+  // en el grupo y en el orden que le da el backend, y la lista de eventos
+  // para que "Tu día" y el avance cuenten con el estado nuevo. Devuelve los
+  // eventos, o null si no se pudo (y entonces se muestra el error).
+  async function recargar() {
     try {
       const [gestiones, eventos] = await Promise.all([
         obtenerGestionesHoy({ eventoId, estado }),
         listarEventos(),
       ]);
       setDatos((actuales) => ({ ...actuales, gestiones, eventos }));
-      setMensaje(mensajeReprogramada(actualizada));
+      return eventos;
     } catch (err) {
       setError(err.message);
+      return null;
     }
+  }
+
+  async function alReprogramar(actualizada) {
+    setReprogramando(null);
+    setMoviendoAlReabrir(false);
+    limpiarAvisos();
+    if (await recargar()) setMensaje(mensajeReprogramada(actualizada));
+  }
+
+  async function marcarHecha(gestion) {
+    limpiarAvisos();
+    setGuardandoId(gestion.id);
+    try {
+      await ejecutarSubtarea(gestion.id);
+    } catch {
+      setGuardandoId(null);
+      setErrorAccion(
+        `No pudimos marcar "${gestion.titulo}" como hecha. Inténtalo de nuevo.`,
+      );
+      return;
+    }
+
+    const eventos = await recargar();
+    setGuardandoId(null);
+    if (!eventos) return;
+    const evento = eventos.find((e) => e.id === gestion.evento);
+    setHecha({ gestion, estado: gestion.estado });
+    setMensaje(mensajeHecha(gestion, avanceDe(evento?.subtareas ?? [])));
+  }
+
+  // Vuelve la gestión al estado que tenía. Como vuelve a sumar sus horas al
+  // día, el backend puede responder 409 si ese día ya se llenó: entonces se
+  // explica y se ofrece moverla a otro día en lugar de dejarla sin salida.
+  async function deshacer() {
+    const { gestion, estado: anterior } = hecha;
+    setGuardandoId(gestion.id);
+    setErrorAccion("");
+    try {
+      await actualizarSubtarea(gestion.id, { estado: anterior });
+    } catch (err) {
+      setGuardandoId(null);
+      if (
+        err instanceof ApiError &&
+        err.status === 409 &&
+        err.data?.codigo === "sobrecarga_diaria"
+      ) {
+        setMensaje("");
+        setHecha(null);
+        setReabrir({
+          gestion,
+          estado: anterior,
+          conflicto: { ...err.data.conflicto, mensaje: err.message },
+        });
+        return;
+      }
+      setErrorAccion("No pudimos deshacerlo. Inténtalo de nuevo.");
+      return;
+    }
+
+    const eventos = await recargar();
+    setGuardandoId(null);
+    if (!eventos) return;
+    setHecha(null);
+    setMensaje(
+      `Deshecho. "${gestion.titulo}" vuelve a estar ${etiquetaEstado(anterior).toLowerCase()}.`,
+    );
   }
 
   if (error) {
@@ -349,12 +447,49 @@ function Hoy() {
 
           {mensaje && (
             <p
-              className="alert-success aviso-suelto"
+              className="alert-success aviso-suelto aviso-con-accion"
               role="status"
               tabIndex={-1}
               ref={mensajeRef}
             >
-              {mensaje}
+              <span>{mensaje}</span>
+              {hecha && (
+                <button
+                  type="button"
+                  className="enlace"
+                  disabled={guardandoId === hecha.gestion.id}
+                  onClick={deshacer}
+                >
+                  {guardandoId === hecha.gestion.id ? "Deshaciendo..." : "Deshacer"}
+                </button>
+              )}
+            </p>
+          )}
+
+          {errorAccion && (
+            <p className="alert-error aviso-suelto" role="alert">
+              {errorAccion}
+            </p>
+          )}
+
+          {reabrir && (
+            <p
+              className="alert-error aviso-suelto aviso-con-accion"
+              role="alert"
+              tabIndex={-1}
+              ref={reabrirRef}
+            >
+              <span>
+                No pudimos reabrir "{reabrir.gestion.titulo}": ese día ya está
+                lleno. {reabrir.conflicto.mensaje}.
+              </span>
+              <button
+                type="button"
+                className="enlace"
+                onClick={() => setMoviendoAlReabrir(true)}
+              >
+                Posponer a otro día
+              </button>
             </p>
           )}
 
@@ -376,12 +511,12 @@ function Hoy() {
             <section className="panel hoy-state">
               <h2>
                 {hayEventos
-                  ? "No tienes gestiones pendientes"
+                  ? "¡Al día! No te quedan gestiones pendientes"
                   : "Aún no tienes gestiones"}
               </h2>
               <p>
                 {hayEventos
-                  ? "Estás al día. Cuando agregues gestiones a tus eventos, aquí las verás ordenadas por urgencia."
+                  ? "Todo lo que tenías está hecho. Cuando agregues gestiones a tus eventos, aquí las verás ordenadas por urgencia."
                   : "Crea tu primer evento y agrégale gestiones para verlas aquí ordenadas por urgencia."}
               </p>
               <div className="hoy-state-actions">
@@ -454,17 +589,30 @@ function Hoy() {
                               {formatearFecha(gestion.fecha_objetivo)} ·{" "}
                               {enHoras(gestion.horas_estimadas)}
                             </div>
-                            <button
-                              type="button"
-                              className="btn linea chico"
-                              aria-label={`Reprogramar ${gestion.titulo}`}
-                              onClick={() => {
-                                setMensaje("");
-                                setReprogramando(gestion);
-                              }}
-                            >
-                              Reprogramar
-                            </button>
+                            <div className="fila-botones">
+                              <button
+                                type="button"
+                                className="btn chico"
+                                aria-label={`Marcar ${gestion.titulo} como hecha`}
+                                disabled={guardandoId !== null}
+                                onClick={() => marcarHecha(gestion)}
+                              >
+                                {guardandoId === gestion.id
+                                  ? "Guardando..."
+                                  : "Hecha"}
+                              </button>
+                              <button
+                                type="button"
+                                className="btn linea chico"
+                                aria-label={`Reprogramar ${gestion.titulo}`}
+                                onClick={() => {
+                                  limpiarAvisos();
+                                  setReprogramando(gestion);
+                                }}
+                              >
+                                Reprogramar
+                              </button>
+                            </div>
                           </div>
                         </li>
                       ))}
@@ -528,6 +676,19 @@ function Hoy() {
           key={reprogramando.id}
           gestion={reprogramando}
           onCerrar={() => setReprogramando(null)}
+          onGuardado={alReprogramar}
+        />
+      )}
+
+      {/* Deshacer chocó con el límite: se abre directo en el aviso de
+          sobrecarga y la salida elegida la reabre y la mueve de una vez. */}
+      {reabrir && moviendoAlReabrir && (
+        <ReprogramarDialog
+          key={`reabrir-${reabrir.gestion.id}`}
+          gestion={reabrir.gestion}
+          conflictoInicial={reabrir.conflicto}
+          pendientes={{ estado: reabrir.estado }}
+          onCerrar={() => setMoviendoAlReabrir(false)}
           onGuardado={alReprogramar}
         />
       )}

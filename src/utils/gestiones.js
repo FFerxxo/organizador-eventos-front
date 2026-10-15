@@ -50,3 +50,12 @@ export function mensajeReprogramada(gestion) {
 
   return `Listo. "${gestion.titulo}" quedó para el ${formatearFecha(gestion.fecha_objetivo)}, con ${enHoras(horas)} ${horas === 1 ? "estimada" : "estimadas"}.${carga}`;
 }
+
+// Aviso después de marcar una gestión como hecha, con cómo va su evento.
+export function mensajeHecha(gestion, avance) {
+  const progreso =
+    avance?.total > 0
+      ? ` Llevas ${avance.finalizadas} de ${avance.total} (${avance.porcentaje} %).`
+      : "";
+  return `Listo, marcaste "${gestion.titulo}" como hecha.${progreso}`;
+}
