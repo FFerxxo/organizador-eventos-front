@@ -1,3 +1,4 @@
+import { cambiosAlEjecutar, cambiosAlPosponer } from "../utils/gestiones";
 import { numeroDeHoras } from "../utils/horas";
 import { ApiError } from "./client";
 
@@ -49,6 +50,7 @@ let subtareas = [
     fecha_objetivo: enDias(-3),
     horas_estimadas: 2,
     estado: "por hacer",
+    nota: "Esperando confirmación del salón",
   },
   {
     id: 2,
@@ -58,6 +60,7 @@ let subtareas = [
     fecha_objetivo: enDias(0),
     horas_estimadas: 3,
     estado: "en curso",
+    nota: "",
   },
   {
     id: 3,
@@ -67,6 +70,7 @@ let subtareas = [
     fecha_objetivo: enDias(0),
     horas_estimadas: 1,
     estado: "por hacer",
+    nota: "",
   },
   {
     id: 4,
@@ -76,6 +80,7 @@ let subtareas = [
     fecha_objetivo: enDias(-1),
     horas_estimadas: 1.5,
     estado: "por hacer",
+    nota: "",
   },
   {
     id: 5,
@@ -85,6 +90,7 @@ let subtareas = [
     fecha_objetivo: enDias(4),
     horas_estimadas: 2,
     estado: "por hacer",
+    nota: "",
   },
   {
     id: 6,
@@ -94,6 +100,7 @@ let subtareas = [
     fecha_objetivo: enDias(9),
     horas_estimadas: 1,
     estado: "finalizado",
+    nota: "",
   },
 ];
 
@@ -308,6 +315,16 @@ export function actualizarSubtarea(id, cambios) {
       limite_horas_dia: limiteHorasDia.toFixed(2),
     },
   });
+}
+
+// Mismo cuerpo que manda el front al back real; el mock sí guarda la nota
+// para poder probar la interfaz.
+export function ejecutarSubtarea(id, datos) {
+  return actualizarSubtarea(id, cambiosAlEjecutar(datos));
+}
+
+export function posponerSubtarea(id, datos) {
+  return actualizarSubtarea(id, cambiosAlPosponer(datos));
 }
 
 export function eliminarSubtarea(id) {
