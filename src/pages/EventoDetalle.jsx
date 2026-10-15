@@ -560,6 +560,7 @@ function EventoDetalle() {
       {sobrecargaAlEditar && (
         <ReprogramarDialog
           key={`editar-${sobrecargaAlEditar.gestion.id}`}
+          modo="editar"
           gestion={sobrecargaAlEditar.gestion}
           conflictoInicial={sobrecargaAlEditar.conflicto}
           pendientes={sobrecargaAlEditar.cambios}

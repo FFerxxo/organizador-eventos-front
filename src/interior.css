@@ -696,6 +696,15 @@
   gap: 14px;
 }
 
+/* Nota de una gestión pospuesta ("Nota: esperando confirmación..."). */
+.interior .fila p.fila-nota,
+.interior .subtask-list .fila-nota {
+  margin-top: 4px;
+  font-size: 14.5px;
+  font-style: italic;
+  color: var(--ink);
+}
+
 .fila-botones {
   display: flex;
   gap: 8px;

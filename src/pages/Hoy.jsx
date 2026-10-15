@@ -29,7 +29,7 @@ import {
 import {
   avanceDe,
   mensajeHecha,
-  mensajeReprogramada,
+  mensajePospuesta,
 } from "../utils/gestiones";
 import { enHoras } from "../utils/horas";
 
@@ -235,11 +235,11 @@ function Hoy() {
     }
   }
 
-  async function alReprogramar(actualizada) {
+  async function alPosponer(actualizada, enviado) {
     setReprogramando(null);
     setMoviendoAlReabrir(false);
     limpiarAvisos();
-    if (await recargar()) setMensaje(mensajeReprogramada(actualizada));
+    if (await recargar()) setMensaje(mensajePospuesta(actualizada, enviado));
   }
 
   async function marcarHecha(gestion) {
@@ -363,6 +363,10 @@ function Hoy() {
   const limiteDiario = Number(limite?.limite_horas_dia);
   const hayTuDia = limiteDiario > 0;
   const hayDerecha = proximosEventos.length > 0 || hayTuDia;
+
+  // Día del evento de una gestión: el límite para posponerla.
+  const diaDelEvento = (gestion) =>
+    soloFecha(eventos.find((e) => e.id === gestion.evento)?.fecha_hora ?? "");
 
   return (
     <Layout>
@@ -574,6 +578,9 @@ function Hoy() {
                             {gestion.descripcion && (
                               <p>{gestion.descripcion}</p>
                             )}
+                            {gestion.nota && (
+                              <p className="fila-nota">Nota: {gestion.nota}</p>
+                            )}
                           </div>
                           <div className="fila-fin">
                             <div className="cuando">
@@ -604,13 +611,13 @@ function Hoy() {
                               <button
                                 type="button"
                                 className="btn linea chico"
-                                aria-label={`Reprogramar ${gestion.titulo}`}
+                                aria-label={`Posponer ${gestion.titulo}`}
                                 onClick={() => {
                                   limpiarAvisos();
                                   setReprogramando(gestion);
                                 }}
                               >
-                                Reprogramar
+                                Posponer
                               </button>
                             </div>
                           </div>
@@ -675,8 +682,9 @@ function Hoy() {
         <ReprogramarDialog
           key={reprogramando.id}
           gestion={reprogramando}
+          fechaMaxima={diaDelEvento(reprogramando)}
           onCerrar={() => setReprogramando(null)}
-          onGuardado={alReprogramar}
+          onGuardado={alPosponer}
         />
       )}
 
@@ -686,10 +694,11 @@ function Hoy() {
         <ReprogramarDialog
           key={`reabrir-${reabrir.gestion.id}`}
           gestion={reabrir.gestion}
+          fechaMaxima={diaDelEvento(reabrir.gestion)}
           conflictoInicial={reabrir.conflicto}
           pendientes={{ estado: reabrir.estado }}
           onCerrar={() => setMoviendoAlReabrir(false)}
-          onGuardado={alReprogramar}
+          onGuardado={alPosponer}
         />
       )}
     </Layout>

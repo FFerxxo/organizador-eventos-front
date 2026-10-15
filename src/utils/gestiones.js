@@ -59,3 +59,10 @@ export function mensajeHecha(gestion, avance) {
       : "";
   return `Listo, marcaste "${gestion.titulo}" como hecha.${progreso}`;
 }
+
+// Aviso después de posponer. "Nota guardada" solo sale si el back devolvió
+// la nota que se mandó: si todavía no la guarda, no se promete nada.
+export function mensajePospuesta(gestion, { nota } = {}) {
+  const guardada = nota && gestion.nota === nota ? " Nota guardada." : "";
+  return `${mensajeReprogramada(gestion)}${guardada}`;
+}
