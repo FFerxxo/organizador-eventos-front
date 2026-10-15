@@ -1,5 +1,19 @@
+import { normalizarEstado } from "../constants";
 import { formatearFecha } from "./fechas";
 import { enHoras } from "./horas";
+
+// Avance de un evento: porcentaje = finalizadas / total, el mismo cálculo que
+// GET /api/eventos/<id>/progreso/. Redondeo hacia arriba en .5 (Math.round):
+// 1 de 8 = 12.5 % -> 13 %. Pendiente de acordar con el back, porque el
+// round() de Python redondea .5 al par (12.5 -> 12).
+export function avanceDe(gestiones) {
+  const total = gestiones.length;
+  const finalizadas = gestiones.filter(
+    (gestion) => normalizarEstado(gestion.estado) === "finalizado",
+  ).length;
+  const porcentaje = total === 0 ? 0 : Math.round((finalizadas / total) * 100);
+  return { total, finalizadas, pendientes: total - finalizadas, porcentaje };
+}
 
 // La nota es opcional: solo viaja si trae texto. Si no se manda, el back
 // conserva la que ya tenía la gestión.
