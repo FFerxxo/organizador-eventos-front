@@ -1,5 +1,6 @@
 import { comoLista, request, USE_MOCK } from "./client";
 import * as mock from "./mock";
+import { cambiosAlEjecutar, cambiosAlPosponer } from "../utils/gestiones";
 
 const api = {
   listarEventos: () => request("/api/eventos/").then(comoLista),
@@ -28,6 +29,25 @@ const api = {
   actualizarSubtarea: (id, cambios) =>
     request(`/api/subtareas/${id}/`, { method: "PATCH", body: cambios }),
 
+  // Marcar una gestión como hecha. Mientras el back no tenga el endpoint
+  // dedicado se usa el PATCH; al tenerlo, basta con cambiar esta línea por
+  //   request(`/api/subtareas/${id}/ejecutar/`, { method: "POST", body: { nota } })
+  // La nota viaja en el body; si el back todavía no la conoce, la ignora.
+  ejecutarSubtarea: (id, datos) =>
+    request(`/api/subtareas/${id}/`, {
+      method: "PATCH",
+      body: cambiosAlEjecutar(datos),
+    }),
+
+  // Posponer = reprogramar con nota. Igual que el PATCH, responde 409
+  // `sobrecarga_diaria` si el día nuevo se pasa del límite. Endpoint dedicado:
+  //   POST /api/subtareas/${id}/posponer/ con el mismo body.
+  posponerSubtarea: (id, datos) =>
+    request(`/api/subtareas/${id}/`, {
+      method: "PATCH",
+      body: cambiosAlPosponer(datos),
+    }),
+
   eliminarSubtarea: (id) =>
     request(`/api/subtareas/${id}/`, { method: "DELETE" }),
 
@@ -52,6 +72,8 @@ export const {
   listarSubtareas,
   crearSubtarea,
   actualizarSubtarea,
+  ejecutarSubtarea,
+  posponerSubtarea,
   eliminarSubtarea,
   obtenerGestionesHoy,
 } = USE_MOCK ? mock : api;

@@ -569,6 +569,19 @@
   margin: 22px 0 0;
 }
 
+/* Aviso con un enlace de acción al final (Deshacer, Posponer a otro día). */
+.interior .aviso-con-accion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 16px;
+}
+
+.interior .aviso-con-accion .enlace {
+  color: inherit;
+}
+
 .interior .hoy-group {
   margin-top: 30px;
   overflow: hidden;
@@ -681,6 +694,20 @@
   align-items: center;
   justify-content: flex-end;
   gap: 14px;
+}
+
+/* Nota de una gestión pospuesta ("Nota: esperando confirmación..."). */
+.interior .fila p.fila-nota,
+.interior .subtask-list .fila-nota {
+  margin-top: 4px;
+  font-size: 14.5px;
+  font-style: italic;
+  color: var(--ink);
+}
+
+.fila-botones {
+  display: flex;
+  gap: 8px;
 }
 
 .cuando {
@@ -1467,6 +1494,21 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
+}
+
+/* Avance dentro de "Mis tareas" del detalle del evento. */
+.interior .avance-evento {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.interior .avance-evento h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.interior .avance-evento .avance-cabecera strong {
+  font-size: 20px;
 }
 
 .interior .avance-cabecera h2 {
