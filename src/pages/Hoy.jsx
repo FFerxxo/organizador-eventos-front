@@ -28,8 +28,10 @@ import {
 } from "../utils/fechas";
 import {
   avanceDe,
+  mensajeDeshecha,
   mensajeHecha,
   mensajePospuesta,
+  textoSobrecarga,
 } from "../utils/gestiones";
 import { enHoras } from "../utils/horas";
 
@@ -41,19 +43,19 @@ const GRUPOS = [
     clave: "vencidas",
     titulo: "Vencidas",
     descripcion: "Su fecha objetivo ya pasó. Atiéndelas primero.",
-    vacio: "No tienes gestiones vencidas.",
+    vacio: "No tienes tareas vencidas.",
   },
   {
     clave: "para_hoy",
     titulo: "Para hoy",
     descripcion: "Su fecha objetivo es hoy.",
-    vacio: "No tienes gestiones para hoy.",
+    vacio: "No tienes tareas para hoy.",
   },
   {
     clave: "proximas",
     titulo: "Próximas",
     descripcion: "Todavía tienen tiempo; no requieren atención inmediata.",
-    vacio: "No tienes gestiones próximas.",
+    vacio: "No tienes tareas próximas.",
   },
 ];
 
@@ -115,7 +117,7 @@ function TuDia({ horas, limite }) {
 function Cargando() {
   return (
     <div role="status" aria-live="polite">
-      <span className="visually-hidden">Cargando tus gestiones...</span>
+      <span className="visually-hidden">Cargando tus tareas...</span>
       <div className="hoy-skeleton hoy-skeleton-hero" aria-hidden="true" />
       <div className="hoy-list hoy-skeleton-list" aria-hidden="true">
         <div className="hoy-skeleton" />
@@ -260,7 +262,13 @@ function Hoy() {
     if (!eventos) return;
     const evento = eventos.find((e) => e.id === gestion.evento);
     setHecha({ gestion, estado: gestion.estado });
-    setMensaje(mensajeHecha(gestion, avanceDe(evento?.subtareas ?? [])));
+    setMensaje(
+      mensajeHecha(
+        gestion,
+        avanceDe(evento?.subtareas ?? []),
+        evento?.nombre,
+      ),
+    );
   }
 
   // Vuelve la gestión al estado que tenía. Como vuelve a sumar sus horas al
@@ -297,7 +305,7 @@ function Hoy() {
     if (!eventos) return;
     setHecha(null);
     setMensaje(
-      `Deshecho. "${gestion.titulo}" vuelve a estar ${etiquetaEstado(anterior).toLowerCase()}.`,
+      mensajeDeshecha(gestion, anterior),
     );
   }
 
@@ -305,7 +313,7 @@ function Hoy() {
     return (
       <Layout>
         <section className="panel hoy-state" role="alert">
-          <h1>No pudimos cargar tus gestiones</h1>
+          <h1>No pudimos cargar tus tareas</h1>
           <p>{error}</p>
           <p>
             Tus datos no se perdieron. Revisa tu conexión e inténtalo de nuevo.
@@ -373,15 +381,15 @@ function Hoy() {
       <p className="hoy-dia">{formatearFechaLarga(gestiones.fecha_actual)}</p>
       <h1 className="hoy-titular">
         {urgentes > 0
-          ? `Tienes ${plural(urgentes, "gestión", "gestiones")} para atender hoy`
-          : "Gestiones urgentes del día"}
+          ? `Tienes ${plural(urgentes, "tarea", "tareas")} para atender hoy`
+          : "Tareas urgentes del día"}
       </h1>
 
       <div className={hayDerecha ? "hoy" : "hoy sin-lateral"}>
         <div>
           <section
             className="panel stats-grid"
-            aria-label="Resumen de gestiones"
+            aria-label="Resumen de tareas"
           >
             {GRUPOS.map((grupo) => (
               <a key={grupo.clave} href={`#grupo-${grupo.clave}`}>
@@ -398,7 +406,7 @@ function Hoy() {
           {hayEventos && (
             <form
               className="hoy-filtros"
-              aria-label="Filtrar gestiones"
+              aria-label="Filtrar tareas"
               onSubmit={(e) => e.preventDefault()}
             >
               <label>
@@ -443,7 +451,7 @@ function Hoy() {
 
               <p role="status">
                 {hayFiltros
-                  ? `Con este filtro: ${plural(total, "gestión", "gestiones")}.`
+                  ? `Con este filtro: ${plural(total, "tarea", "tareas")}.`
                   : ""}
               </p>
             </form>
@@ -485,7 +493,7 @@ function Hoy() {
             >
               <span>
                 No pudimos reabrir "{reabrir.gestion.titulo}": ese día ya está
-                lleno. {reabrir.conflicto.mensaje}.
+                lleno. {textoSobrecarga(reabrir.conflicto)}
               </span>
               <button
                 type="button"
@@ -499,7 +507,7 @@ function Hoy() {
 
           {total === 0 && hayFiltros ? (
             <section className="panel hoy-state">
-              <h2>No hay gestiones con ese filtro</h2>
+              <h2>No hay tareas con ese filtro</h2>
               <p>Prueba con otro evento u otro estado, o quita el filtro.</p>
               <div className="hoy-state-actions">
                 <button
@@ -515,13 +523,13 @@ function Hoy() {
             <section className="panel hoy-state">
               <h2>
                 {hayEventos
-                  ? "¡Al día! No te quedan gestiones pendientes"
-                  : "Aún no tienes gestiones"}
+                  ? "¡Al día! No te quedan tareas pendientes"
+                  : "Aún no tienes tareas"}
               </h2>
               <p>
                 {hayEventos
-                  ? "Todo lo que tenías está hecho. Cuando agregues gestiones a tus eventos, aquí las verás ordenadas por urgencia."
-                  : "Crea tu primer evento y agrégale gestiones para verlas aquí ordenadas por urgencia."}
+                  ? "Todo lo que tenías está hecho. Cuando agregues tareas a tus eventos, aquí las verás ordenadas por urgencia."
+                  : "Crea tu primer evento y agrégale tareas para verlas aquí ordenadas por urgencia."}
               </p>
               <div className="hoy-state-actions">
                 <Link className="btn-link" to="/crear">
@@ -546,7 +554,7 @@ function Hoy() {
                     <h2 id={idTitulo}>{grupo.titulo}</h2>
                     <span
                       className="grupo-cantidad"
-                      aria-label={plural(lista.length, "gestión", "gestiones")}
+                      aria-label={plural(lista.length, "tarea", "tareas")}
                     >
                       {lista.length}
                     </span>
@@ -568,14 +576,12 @@ function Hoy() {
                               <Link to={`/evento/${gestion.evento}`}>
                                 {nombres[gestion.evento] ?? "Ver evento"}
                               </Link>
-                              {claseEstado(gestion.estado) !== "pendiente" && (
-                                <span
-                                  className={`subtask-status${claseEstado(gestion.estado) === "pospuesta" ? " pospuesta" : ""}`}
-                                >
-                                  {" · "}
-                                  {etiquetaEstado(gestion.estado)}
-                                </span>
-                              )}
+                              <span
+                                className={`subtask-status${claseEstado(gestion.estado) === "pospuesta" ? " pospuesta" : ""}`}
+                              >
+                                {" · "}
+                                {etiquetaEstado(gestion.estado)}
+                              </span>
                             </p>
                             {gestion.descripcion && (
                               <p>{gestion.descripcion}</p>
@@ -666,7 +672,7 @@ function Hoy() {
                         </small>
                         {evento.subtareas?.length === 0 && (
                           <small className="sin-gestiones">
-                            Sin gestiones todavía
+                            Sin tareas todavía
                           </small>
                         )}
                       </span>

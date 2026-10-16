@@ -12,12 +12,12 @@ const plural = (n, singular, pluralizado) =>
 
 // Frase de ánimo según el avance de todos los eventos juntos.
 function fraseDeAvance(porcentaje) {
-  if (porcentaje === 0) return "Todavía no cierras ninguna gestión.";
+  if (porcentaje === 0) return "Todavía no cierras ninguna tarea.";
   if (porcentaje < 50) {
-    return "Vas empezando. Cada gestión que cierres suma a tus eventos.";
+    return "Vas empezando. Cada tarea que cierres suma a tus eventos.";
   }
   if (porcentaje < 100) return "Vas a buen ritmo.";
-  return "Todo hecho.";
+  return "Todo listo.";
 }
 
 function Progreso() {
@@ -125,8 +125,8 @@ function Progreso() {
               {general.finalizadas} de{" "}
               {plural(
                 general.total,
-                "gestión hecha",
-                "gestiones hechas",
+                "tarea hecha",
+                "tareas hechas",
               )}
             </strong>
             <p>{fraseDeAvance(general.porcentaje)}</p>

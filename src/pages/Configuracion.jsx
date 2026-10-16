@@ -104,8 +104,8 @@ function Configuracion() {
         <section className="panel panel-relleno formulario">
           <h2>Límite diario de horas</h2>
           <p>
-            Es el máximo de horas de gestión que quieres dedicarle a tus eventos
-            en un día. Si al reprogramar una gestión te pasas de este límite, te
+            Es el máximo de horas de tareas que quieres dedicarle a tus eventos
+            en un día. Si al reprogramar una tarea te pasas de este límite, te
             avisamos antes de guardar.
           </p>
 

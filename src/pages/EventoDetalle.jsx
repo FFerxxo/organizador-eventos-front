@@ -26,8 +26,10 @@ import {
 } from "../utils/fechas";
 import {
   avanceDe,
+  mensajeDeshecha,
   mensajeHecha,
   mensajePospuesta,
+  textoSobrecarga,
   mensajeReprogramada,
 } from "../utils/gestiones";
 import { enHoras } from "../utils/horas";
@@ -307,7 +309,7 @@ function EventoDetalle() {
       const avance = avanceDe(
         subtareas.map((s) => (s.id === actualizada.id ? actualizada : s)),
       );
-      const texto = mensajeHecha(subtarea, avance);
+      const texto = mensajeHecha(subtarea, avance, evento.nombre);
       setMensajeSubtareas(texto);
       setHecha({ gestion: subtarea, estado: subtarea.estado, mensaje: texto });
     } catch {
@@ -332,7 +334,7 @@ function EventoDetalle() {
       reemplazarSubtarea(actualizada);
       setHecha(null);
       setMensajeSubtareas(
-        `Deshecho. "${gestion.titulo}" vuelve a estar ${etiquetaEstado(anterior).toLowerCase()}.`,
+        mensajeDeshecha(gestion, anterior),
       );
     } catch (error) {
       if (
@@ -542,7 +544,7 @@ function EventoDetalle() {
           >
             <span>
               No pudimos reabrir "{reabrir.gestion.titulo}": ese día ya está
-              lleno. {reabrir.conflicto.mensaje}.
+              lleno. {textoSobrecarga(reabrir.conflicto)}
             </span>
             <button
               type="button"
