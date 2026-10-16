@@ -14,24 +14,32 @@ export const LIMITE_DIARIO = { minimo: 1, maximo: 16, porDefecto: 6 };
 export const ESTADOS_SUBTAREA = [
   { value: "por hacer", label: "Pendiente" },
   { value: "en curso", label: "En progreso" },
-  { value: "finalizado", label: "Finalizado" },
+  { value: "hecha", label: "Hecha" },
+  { value: "pospuesta", label: "Pospuesta" },
 ];
 
-// En Hoy no salen las finalizadas, así que el filtro no las ofrece.
+// En Hoy no salen las hechas, así que el filtro no las ofrece.
 export const ESTADOS_FILTRO_HOY = ESTADOS_SUBTAREA.filter(
-  (estado) => estado.value !== "finalizado",
+  (estado) => estado.value !== "hecha",
 );
 
-// Antes el formulario guardaba "pendiente" / "en_progreso": las gestiones
-// viejas pueden venir así y se tratan como su equivalente actual.
+// Antes se guardaba "pendiente" / "en_progreso" / "finalizado" / "completada":
+// las gestiones viejas pueden venir así y se tratan como su equivalente actual.
 const EQUIVALENCIAS_ESTADO = {
   pendiente: "por hacer",
   en_progreso: "en curso",
+  finalizado: "hecha",
+  completada: "hecha",
 };
 
 export function normalizarEstado(valor) {
   const estado = String(valor ?? "").trim().toLowerCase();
   return EQUIVALENCIAS_ESTADO[estado] ?? estado;
+}
+
+// Una gestión hecha ya no cuenta en las horas del día ni sale en Hoy.
+export function ocupaElDia(valor) {
+  return normalizarEstado(valor) !== "hecha";
 }
 
 export function etiquetaEstado(valor) {

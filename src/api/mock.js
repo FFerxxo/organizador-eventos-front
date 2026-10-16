@@ -1,3 +1,5 @@
+import { normalizarEstado, ocupaElDia } from "../constants";
+import { cambiosAlEjecutar, cambiosAlPosponer } from "../utils/gestiones";
 import { numeroDeHoras } from "../utils/horas";
 import { ApiError } from "./client";
 
@@ -49,6 +51,7 @@ let subtareas = [
     fecha_objetivo: enDias(-3),
     horas_estimadas: 2,
     estado: "por hacer",
+    nota: "Esperando confirmación del salón",
   },
   {
     id: 2,
@@ -58,6 +61,7 @@ let subtareas = [
     fecha_objetivo: enDias(0),
     horas_estimadas: 3,
     estado: "en curso",
+    nota: "",
   },
   {
     id: 3,
@@ -67,6 +71,7 @@ let subtareas = [
     fecha_objetivo: enDias(0),
     horas_estimadas: 1,
     estado: "por hacer",
+    nota: "",
   },
   {
     id: 4,
@@ -76,6 +81,7 @@ let subtareas = [
     fecha_objetivo: enDias(-1),
     horas_estimadas: 1.5,
     estado: "por hacer",
+    nota: "",
   },
   {
     id: 5,
@@ -85,6 +91,7 @@ let subtareas = [
     fecha_objetivo: enDias(4),
     horas_estimadas: 2,
     estado: "por hacer",
+    nota: "",
   },
   {
     id: 6,
@@ -93,7 +100,8 @@ let subtareas = [
     descripcion: "",
     fecha_objetivo: enDias(9),
     horas_estimadas: 1,
-    estado: "finalizado",
+    estado: "hecha",
+    nota: "",
   },
 ];
 
@@ -181,13 +189,13 @@ export function crearSubtarea(eventoId, datos) {
   return responder(subtarea);
 }
 
-// Horas sin finalizar planificadas para un día, sin contar una gestión.
+// Horas por hacer planificadas para un día, sin contar una gestión.
 function horasDelDia(fecha, sinId) {
   return subtareas
     .filter(
       (subtarea) =>
         subtarea.id !== sinId &&
-        subtarea.estado !== "finalizado" &&
+        ocupaElDia(subtarea.estado) &&
         subtarea.fecha_objetivo === fecha,
     )
     .reduce((total, subtarea) => total + Number(subtarea.horas_estimadas), 0);
@@ -260,11 +268,11 @@ export function actualizarSubtarea(id, cambios) {
   const horas = Number(nueva.horas_estimadas);
   const horasAntes =
     actual.fecha_objetivo === nueva.fecha_objetivo &&
-    actual.estado !== "finalizado"
+    ocupaElDia(actual.estado)
       ? Number(actual.horas_estimadas)
       : 0;
 
-  if (nueva.estado !== "finalizado" && horas > horasAntes) {
+  if (ocupaElDia(nueva.estado) && horas > horasAntes) {
     const otras = horasDelDia(nueva.fecha_objetivo, actual.id);
     const planificadas = otras + horas;
 
@@ -310,6 +318,16 @@ export function actualizarSubtarea(id, cambios) {
   });
 }
 
+// Mismo cuerpo que manda el front al back real; el mock sí guarda la nota
+// para poder probar la interfaz.
+export function ejecutarSubtarea(id, datos) {
+  return actualizarSubtarea(id, cambiosAlEjecutar(datos));
+}
+
+export function posponerSubtarea(id, datos) {
+  return actualizarSubtarea(id, cambiosAlPosponer(datos));
+}
+
 export function eliminarSubtarea(id) {
   if (!subtareas.some((subtarea) => subtarea.id === Number(id))) {
     return Promise.reject(
@@ -322,7 +340,7 @@ export function eliminarSubtarea(id) {
 }
 
 // Misma agrupación y orden que GET /api/subtareas/hoy/: no incluye las
-// finalizadas; ordena por fecha objetivo y, en empate, por menos horas.
+// hechas (las pospuestas salen en su nueva fecha); ordena por fecha objetivo y, en empate, por menos horas.
 export function obtenerGestionesHoy({ eventoId, estado } = {}) {
   if (eventoId && !buscarEvento(eventoId)) {
     return Promise.reject(
@@ -335,9 +353,9 @@ export function obtenerGestionesHoy({ eventoId, estado } = {}) {
   const hoy = enDias(0);
   const pendientes = subtareas.filter(
     (subtarea) =>
-      subtarea.estado !== "finalizado" &&
+      ocupaElDia(subtarea.estado) &&
       (!eventoId || subtarea.evento === Number(eventoId)) &&
-      (!estado || subtarea.estado === estado),
+      (!estado || normalizarEstado(subtarea.estado) === normalizarEstado(estado)),
   );
   const porFechaYHoras = (a, b) =>
     a.fecha_objetivo.localeCompare(b.fecha_objetivo) ||

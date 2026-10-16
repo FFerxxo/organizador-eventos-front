@@ -590,7 +590,7 @@ a:focus {
   color: var(--primary-dark);
 }
 
-.subtask-status.finalizado {
+.subtask-status.hecha {
   background: var(--soft-green);
   color: var(--success);
 }

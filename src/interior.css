@@ -569,6 +569,19 @@
   margin: 22px 0 0;
 }
 
+/* Aviso con un enlace de acción al final (Deshacer, Posponer a otro día). */
+.interior .aviso-con-accion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 16px;
+}
+
+.interior .aviso-con-accion .enlace {
+  color: inherit;
+}
+
 .interior .hoy-group {
   margin-top: 30px;
   overflow: hidden;
@@ -681,6 +694,21 @@
   align-items: center;
   justify-content: flex-end;
   gap: 14px;
+}
+
+/* Nota de una gestión pospuesta ("Nota: esperando confirmación..."). */
+.interior .fila p.fila-nota,
+.interior .subtask-list .fila-nota {
+  margin-top: 4px;
+  font-size: 14.5px;
+  font-style: italic;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.fila-botones {
+  display: flex;
+  gap: 8px;
 }
 
 .cuando {
@@ -1048,7 +1076,7 @@
 
 .interior .subtask-status,
 .interior .subtask-status.en_progreso,
-.interior .subtask-status.finalizado {
+.interior .subtask-status.hecha {
   min-width: 104px;
   padding: 0;
   border-radius: 0;
@@ -1063,8 +1091,13 @@
   color: var(--today);
 }
 
-.interior .subtask-status.finalizado {
+.interior .subtask-status.hecha {
   color: var(--ok);
+}
+
+.interior .subtask-status.pospuesta {
+  color: var(--brand);
+  font-weight: 700;
 }
 
 .interior .subtask-botones {
@@ -1105,7 +1138,7 @@
   --raya: #e0a63a;
 }
 
-.subtask-list li.raya-finalizado {
+.subtask-list li.raya-hecha {
   --raya: var(--ok);
 }
 
@@ -1469,6 +1502,21 @@
   gap: 16px;
 }
 
+/* Avance dentro de "Mis tareas" del detalle del evento. */
+.interior .avance-evento {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.interior .avance-evento h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.interior .avance-evento .avance-cabecera strong {
+  font-size: 20px;
+}
+
 .interior .avance-cabecera h2 {
   margin: 0;
   font-size: 19px;
@@ -1631,12 +1679,15 @@
     font-size: 15px;
   }
 
+  .barra-lateral .usuario {
+    min-width: 0;
+  }
+
   .barra-lateral .usuario-nombre {
     flex: 1;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+    text-align: left;
   }
 
   .barra-lateral .usuario-flecha {

@@ -57,6 +57,13 @@ export function fechaDeHoy() {
   return `${ahora.getFullYear()}-${dosDigitos(ahora.getMonth() + 1)}-${dosDigitos(ahora.getDate())}`;
 }
 
+// Día siguiente a una fecha "AAAA-MM-DD".
+export function diaSiguiente(valor) {
+  const fecha = leerFecha(valor);
+  fecha.setDate(fecha.getDate() + 1);
+  return `${fecha.getFullYear()}-${dosDigitos(fecha.getMonth() + 1)}-${dosDigitos(fecha.getDate())}`;
+}
+
 // Días completos entre dos fechas sin hora ("AAAA-MM-DD"). Negativo si
 // `hasta` es anterior a `desde`.
 export function diasEntre(desde, hasta) {

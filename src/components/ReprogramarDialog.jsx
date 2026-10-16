@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { ApiError, erroresDeApi } from "../api/client";
-import { actualizarSubtarea } from "../api/eventos";
-import { formatearFecha, formatearFechaConDia } from "../utils/fechas";
+import { actualizarSubtarea, posponerSubtarea } from "../api/eventos";
+import {
+  diaSiguiente,
+  fechaDeHoy,
+  formatearFecha,
+  formatearFechaConDia,
+} from "../utils/fechas";
 import { enHoras } from "../utils/horas";
 import Campo from "./Campo";
 
@@ -14,21 +19,30 @@ function Flecha() {
   );
 }
 
-// Diálogo para cambiar la fecha y las horas de una gestión. Si el día elegido
-// queda por encima del límite diario, el backend responde 409 con las cifras y
-// aquí se ofrecen las tres salidas: mover a otro día, reducir las horas o
-// posponer.
+// Diálogo para posponer una gestión: nueva fecha, horas y una nota opcional
+// ("esperando confirmación del salón"). Si el día elegido queda por encima
+// del límite diario, el backend responde 409 con las cifras y aquí se ofrecen
+// las tres salidas: mover a otro día, reducir las horas o posponer al
+// siguiente día disponible. La nota viaja con cualquiera de ellas.
 //
-// Desde "Editar gestión" se abre ya en el aviso (`conflictoInicial`) y
-// `pendientes` trae el resto de lo que la persona cambió (título, estado...),
-// para que se guarde junto con la salida que elija.
+// Desde "Editar gestión" (`modo="editar"`) se abre ya en el aviso
+// (`conflictoInicial`), sin nota, y `pendientes` trae el resto de lo que la
+// persona cambió (título, estado...), para que se guarde con el PATCH junto
+// con la salida que elija.
+//
+// `fechaMaxima` es el día del evento: no se puede posponer más allá. Al
+// posponer solo se avanza: desde el día siguiente al actual y nunca antes de
+// hoy.
 function ReprogramarDialog({
   gestion,
+  modo = "posponer",
+  fechaMaxima = "",
   conflictoInicial = null,
   pendientes = {},
   onCerrar,
   onGuardado,
 }) {
+  const conNota = modo === "posponer";
   const dialogRef = useRef(null);
   const tituloRef = useRef(null);
 
@@ -39,11 +53,18 @@ function ReprogramarDialog({
     String(Number(gestion.horas_estimadas)),
   );
   const [horas, setHoras] = useState("");
+  const [nota, setNota] = useState("");
   const [conflicto, setConflicto] = useState(conflictoInicial);
   const [errorCampo, setErrorCampo] = useState("");
   const [errorHoras, setErrorHoras] = useState("");
   const [errorGeneral, setErrorGeneral] = useState("");
   const [guardando, setGuardando] = useState(false);
+
+  // Al posponer (no al reabrir una hecha) la fecha solo puede ir hacia adelante.
+  const soloAdelante = conNota && !pendientes.estado;
+  const fechaMinima = soloAdelante
+    ? [fechaDeHoy(), diaSiguiente(gestion.fecha_objetivo)].sort().at(-1)
+    : "";
 
   useEffect(() => {
     dialogRef.current.showModal();
@@ -77,12 +98,12 @@ function ReprogramarDialog({
     setErrorGeneral("");
 
     try {
-      const actualizada = await actualizarSubtarea(gestion.id, {
-        ...pendientes,
-        ...cambios,
-      });
+      const datos = { ...pendientes, ...cambios };
+      const actualizada = conNota
+        ? await posponerSubtarea(gestion.id, { ...datos, nota })
+        : await actualizarSubtarea(gestion.id, datos);
       dialogRef.current.close();
-      onGuardado(actualizada);
+      onGuardado(actualizada, { nota: conNota ? nota.trim() : "" });
     } catch (error) {
       setGuardando(false);
 
@@ -132,6 +153,18 @@ function ReprogramarDialog({
     }
     if (horasGestion === "" || Number.isNaN(nuevasHoras) || nuevasHoras <= 0) {
       setErrorHoras("Las horas estimadas deben ser mayores a 0.");
+      return;
+    }
+    if (fechaMinima && fecha < fechaMinima) {
+      setErrorCampo(
+        `Para posponer elige un día desde el ${formatearFecha(fechaMinima)}.`,
+      );
+      return;
+    }
+    if (fechaMaxima && fecha > fechaMaxima) {
+      setErrorCampo(
+        `Elige un día hasta el del evento (${formatearFecha(fechaMaxima)}).`,
+      );
       return;
     }
     if (!cambiaFecha && !cambiaHoras) {
@@ -190,7 +223,9 @@ function ReprogramarDialog({
     : 0;
 
   // Días cercanos donde la gestión sí cabe, calculados por el backend.
-  const sugeridas = conflicto?.fechas_sugeridas;
+  const sugeridas = fechaMinima
+    ? conflicto?.fechas_sugeridas?.filter((s) => s.fecha >= fechaMinima)
+    : conflicto?.fechas_sugeridas;
 
   // Primer día posterior donde la gestión cabe: null si no hay ninguno antes
   // del evento.
@@ -209,7 +244,11 @@ function ReprogramarDialog({
       {paso === "fecha" && (
         <form onSubmit={enviarFecha} noValidate>
           <h3 id="reprogramar-titulo" ref={tituloRef} tabIndex={-1}>
-            {conflicto ? "Mover a otro día" : "Reprogramar gestión"}
+            {conflicto
+              ? "Mover a otro día"
+              : conNota
+                ? "Posponer gestión"
+                : "Reprogramar gestión"}
           </h3>
           {!conflicto && (
             <p>
@@ -266,6 +305,8 @@ function ReprogramarDialog({
                 sugeridas?.length > 0 ? "O elige otra fecha" : "Nueva fecha"
               }
               name="fecha_objetivo"
+              min={fechaMinima || undefined}
+              max={fechaMaxima || undefined}
               value={fecha}
               onChange={(e) => {
                 setFecha(e.target.value);
@@ -289,6 +330,19 @@ function ReprogramarDialog({
               }}
               error={errorHoras}
             />
+
+            {conNota && (
+              <Campo
+                as="textarea"
+                rows={2}
+                maxLength={200}
+                label="Nota (opcional)"
+                name="nota"
+                ayuda="Ej.: esperando confirmación del salón. La verás junto a la gestión."
+                value={nota}
+                onChange={(e) => setNota(e.target.value)}
+              />
+            )}
           </div>
 
           <div className="form-actions">
@@ -301,7 +355,7 @@ function ReprogramarDialog({
               Cancelar
             </button>
             <button type="submit" disabled={guardando}>
-              {guardando ? "Guardando..." : "Reprogramar"}
+              {guardando ? "Guardando..." : conNota ? "Posponer" : "Reprogramar"}
             </button>
           </div>
         </form>

@@ -1,14 +1,14 @@
 import { claseEstado } from "../constants";
 
 // Círculo que muestra el estado de una gestión: vacío (pendiente), medio
-// lleno (en progreso), con visto (finalizada) o con "!" (vencida). Es
+// lleno (en progreso), con visto (hecha) o con "!" (vencida). Es
 // decorativo: el estado siempre va también en texto.
 function IconoEstado({ estado, vencida = false }) {
   const clase = claseEstado(estado);
 
   return (
     <svg className="icono-estado" viewBox="0 0 24 24" aria-hidden="true">
-      {clase === "finalizado" ? (
+      {clase === "hecha" ? (
         <>
           <circle cx="12" cy="12" r="10.5" fill="#15803d" />
           <path
