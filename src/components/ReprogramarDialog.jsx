@@ -7,6 +7,7 @@ import {
   formatearFecha,
   formatearFechaConDia,
 } from "../utils/fechas";
+import { textoSobrecarga } from "../utils/gestiones";
 import { enHoras } from "../utils/horas";
 import Campo from "./Campo";
 
@@ -48,7 +49,11 @@ function ReprogramarDialog({
 
   // "fecha" (elegir día), "conflicto" (aviso con cifras) o "reducir" (horas).
   const [paso, setPaso] = useState(conflictoInicial ? "conflicto" : "fecha");
-  const [fecha, setFecha] = useState(gestion.fecha_objetivo);
+  const [fecha, setFecha] = useState(() =>
+    conNota && !pendientes.estado
+      ? diaSiguiente([fechaDeHoy(), gestion.fecha_objetivo].sort().at(-1))
+      : gestion.fecha_objetivo,
+  );
   const [horasGestion, setHorasGestion] = useState(
     String(Number(gestion.horas_estimadas)),
   );
@@ -247,8 +252,8 @@ function ReprogramarDialog({
             {conflicto
               ? "Mover a otro día"
               : conNota
-                ? "Posponer gestión"
-                : "Reprogramar gestión"}
+                ? "Posponer tarea"
+                : "Reprogramar tarea"}
           </h3>
           {!conflicto && (
             <p>
@@ -328,6 +333,7 @@ function ReprogramarDialog({
                 setErrorCampo("");
                 setErrorHoras("");
               }}
+              ayuda="Puedes usar medias horas: 1,5 h = 1 h 30 min"
               error={errorHoras}
             />
 
@@ -338,7 +344,7 @@ function ReprogramarDialog({
                 maxLength={200}
                 label="Nota (opcional)"
                 name="nota"
-                ayuda="Ej.: esperando confirmación del salón. La verás junto a la gestión."
+                ayuda="Ej.: esperando confirmación del salón. La verás junto a la tarea."
                 value={nota}
                 onChange={(e) => setNota(e.target.value)}
               />
@@ -392,7 +398,7 @@ function ReprogramarDialog({
           </h3>
 
           <p className="conflicto-cifras" role="alert">
-            {conflicto.mensaje}
+            {textoSobrecarga(conflicto)}
           </p>
 
           <div className="conflicto-barra" aria-hidden="true">
@@ -475,7 +481,7 @@ function ReprogramarDialog({
             Reducir horas estimadas
           </h3>
           {horasLibres === 0 && (
-            <p>Ese día ya está lleno con tus otras gestiones. Mejor muévela a otro día.</p>
+            <p>Ese día ya está lleno con tus otras tareas. Mejor muévela a otro día.</p>
           )}
 
           {horasLibres > 0 && (

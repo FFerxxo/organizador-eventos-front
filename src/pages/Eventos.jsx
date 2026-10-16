@@ -45,7 +45,7 @@ function Eventos() {
                 ? "1 evento en marcha"
                 : `${eventos.length} eventos en marcha`}
             </strong>
-            <p>Cada uno con sus gestiones.</p>
+            <p>Cada uno con sus tareas.</p>
           </div>
           <Link to="/crear">+ Crear evento</Link>
         </div>

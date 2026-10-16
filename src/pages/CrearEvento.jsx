@@ -19,7 +19,7 @@ function CrearEvento() {
         <h1>Crear evento</h1>
         <p className="sub">
           Registra los datos principales. Al guardar podrás agregar sus
-          gestiones.
+          tareas.
         </p>
       </header>
 
