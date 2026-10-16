@@ -683,10 +683,13 @@
   border-color: var(--cta);
 }
 
+/* Solo muestra el estado: no es un botón, así que no reacciona al mouse. */
 .icono-estado {
   width: 24px;
   height: 24px;
   display: block;
+  cursor: default;
+  pointer-events: none;
 }
 
 .fila-fin {
@@ -1555,6 +1558,18 @@
   height: 100%;
   border-radius: 10px;
   background: var(--cta);
+}
+
+.avance-relleno.avance-cero {
+  background: var(--faint);
+}
+
+.avance-relleno.avance-medio {
+  background: var(--today);
+}
+
+.avance-relleno.avance-completo {
+  background: var(--ok);
 }
 
 .interior .avance-conteo {

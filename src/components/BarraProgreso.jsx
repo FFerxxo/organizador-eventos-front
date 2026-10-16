@@ -1,7 +1,7 @@
 const plural = (n, singular, pluralizado) =>
   `${n} ${n === 1 ? singular : pluralizado}`;
 
-// Barra de avance de un evento con su conteo ("2 de 5 gestiones
+// Barra de avance de un evento con su conteo ("2 de 5 tareas
 // hechas. Faltan 3."). `idEtiqueta` es el id del título que la nombra
 // para el lector de pantalla.
 function BarraProgreso({ avance, idEtiqueta }) {
@@ -9,11 +9,17 @@ function BarraProgreso({ avance, idEtiqueta }) {
 
   if (total === 0) {
     return (
-      <p className="avance-conteo">Este evento todavía no tiene gestiones.</p>
+      <p className="avance-conteo">
+        Este evento todavía no tiene tareas. Agrega la primera abajo para
+        empezar a ver tu avance.
+      </p>
     );
   }
 
-  const conteo = `${finalizadas} de ${plural(total, "gestión hecha", "gestiones hechas")}`;
+  const conteo = `${finalizadas} de ${plural(total, "tarea hecha", "tareas hechas")}`;
+  // Gris sin avance, naranja a medias y verde al terminar.
+  const nivel =
+    porcentaje === 0 ? "cero" : porcentaje === 100 ? "completo" : "medio";
 
   return (
     <>
@@ -26,7 +32,10 @@ function BarraProgreso({ avance, idEtiqueta }) {
         aria-valuenow={porcentaje}
         aria-valuetext={`${porcentaje} %: ${conteo}`}
       >
-        <div className="avance-relleno" style={{ width: `${porcentaje}%` }} />
+        <div
+          className={`avance-relleno avance-${nivel}`}
+          style={{ width: `${porcentaje}%` }}
+        />
       </div>
       <p className="avance-conteo">
         {conteo}
