@@ -544,7 +544,7 @@ function EventoDetalle() {
           >
             <span>
               No pudimos reabrir "{reabrir.gestion.titulo}": ese día ya está
-              lleno. {textoSobrecarga(reabrir.conflicto)}
+              lleno. {textoSobrecarga(reabrir.conflicto)}.
             </span>
             <button
               type="button"

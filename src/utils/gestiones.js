@@ -44,7 +44,7 @@ export function cambiosAlPosponer({ fecha_objetivo, horas_estimadas, nota, estad
 // Frase del aviso de sobrecarga, armada con las cifras del conflicto (el
 // texto del back trae las horas pegadas: "13h").
 export function textoSobrecarga(conflicto) {
-  return `Ese día quedarías con ${enHoras(conflicto?.horas_planificadas)} y tu límite es de ${enHoras(conflicto?.limite_horas_dia)}.`;
+  return `Quedarías con ${enHoras(conflicto?.horas_planificadas)} planificadas (límite ${enHoras(conflicto?.limite_horas_dia)})`;
 }
 
 // "Ese día tendrás 2 h ocupadas de 6 h." Solo si el back manda cómo quedó el día.
