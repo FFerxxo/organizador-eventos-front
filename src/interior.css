@@ -1095,6 +1095,11 @@
   color: var(--ok);
 }
 
+.interior .subtask-status.pospuesta {
+  color: var(--brand);
+  font-weight: 700;
+}
+
 .interior .subtask-botones {
   gap: 16px;
 }

@@ -569,9 +569,11 @@ function Hoy() {
                                 {nombres[gestion.evento] ?? "Ver evento"}
                               </Link>
                               {claseEstado(gestion.estado) !== "pendiente" && (
-                                <span className="subtask-status">
+                                <span
+                                  className={`subtask-status${claseEstado(gestion.estado) === "pospuesta" ? " pospuesta" : ""}`}
+                                >
                                   {" · "}
-                                  {etiquetaEstado(gestion.estado).toLowerCase()}
+                                  {etiquetaEstado(gestion.estado)}
                                 </span>
                               )}
                             </p>
