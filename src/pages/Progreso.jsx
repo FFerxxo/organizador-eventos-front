@@ -108,7 +108,7 @@ function Progreso() {
         <div className="panel empty-state">
           <h2>Aún no tienes eventos</h2>
           <p>
-            Cuando crees un evento y le agregues gestiones, aquí verás cuánto
+            Cuando crees un evento y le agregues tareas, aquí verás cuánto
             llevas y cuánto falta.
           </p>
           <Link className="btn-link" to="/crear">
