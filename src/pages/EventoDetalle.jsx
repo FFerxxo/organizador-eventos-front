@@ -606,7 +606,10 @@ function EventoDetalle() {
         )}
 
         {subtareas.length === 0 ? (
-          <p className="grupo-vacio">Este evento todavía no tiene tareas.</p>
+          <p className="grupo-vacio">
+            Este evento todavía no tiene tareas. Agrega la primera abajo para
+            empezar a ver tu avance.
+          </p>
         ) : (
           <ul className={`subtask-list${enSeleccion ? " en-seleccion" : ""}`}>
             {subtareas.map((subtarea) =>

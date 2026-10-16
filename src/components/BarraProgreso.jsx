@@ -9,10 +9,7 @@ function BarraProgreso({ avance, idEtiqueta }) {
 
   if (total === 0) {
     return (
-      <p className="avance-conteo">
-        Este evento todavía no tiene tareas. Agrega la primera abajo para
-        empezar a ver tu avance.
-      </p>
+      <p className="avance-conteo">Este evento todavía no tiene tareas.</p>
     );
   }
 
