@@ -18,9 +18,9 @@ export const ESTADOS_SUBTAREA = [
   { value: "pospuesta", label: "Pospuesta" },
 ];
 
-// En Hoy no salen las hechas ni las pospuestas, así que el filtro no las ofrece.
+// En Hoy no salen las hechas, así que el filtro no las ofrece.
 export const ESTADOS_FILTRO_HOY = ESTADOS_SUBTAREA.filter(
-  (estado) => estado.value !== "hecha" && estado.value !== "pospuesta",
+  (estado) => estado.value !== "hecha",
 );
 
 // Antes se guardaba "pendiente" / "en_progreso" / "finalizado" / "completada":
@@ -37,10 +37,9 @@ export function normalizarEstado(valor) {
   return EQUIVALENCIAS_ESTADO[estado] ?? estado;
 }
 
-// Una gestión hecha o pospuesta ya no cuenta en las horas del día.
+// Una gestión hecha ya no cuenta en las horas del día ni sale en Hoy.
 export function ocupaElDia(valor) {
-  const estado = normalizarEstado(valor);
-  return estado !== "hecha" && estado !== "pospuesta";
+  return normalizarEstado(valor) !== "hecha";
 }
 
 export function etiquetaEstado(valor) {

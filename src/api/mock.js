@@ -340,7 +340,7 @@ export function eliminarSubtarea(id) {
 }
 
 // Misma agrupación y orden que GET /api/subtareas/hoy/: no incluye las
-// hechas ni pospuestas; ordena por fecha objetivo y, en empate, por menos horas.
+// hechas (las pospuestas salen en su nueva fecha); ordena por fecha objetivo y, en empate, por menos horas.
 export function obtenerGestionesHoy({ eventoId, estado } = {}) {
   if (eventoId && !buscarEvento(eventoId)) {
     return Promise.reject(
