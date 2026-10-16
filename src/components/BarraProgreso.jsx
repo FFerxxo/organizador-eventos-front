@@ -2,7 +2,7 @@ const plural = (n, singular, pluralizado) =>
   `${n} ${n === 1 ? singular : pluralizado}`;
 
 // Barra de avance de un evento con su conteo ("2 de 5 gestiones
-// finalizadas. Faltan 3."). `idEtiqueta` es el id del título que la nombra
+// hechas. Faltan 3."). `idEtiqueta` es el id del título que la nombra
 // para el lector de pantalla.
 function BarraProgreso({ avance, idEtiqueta }) {
   const { total, finalizadas, pendientes, porcentaje } = avance;
@@ -13,7 +13,7 @@ function BarraProgreso({ avance, idEtiqueta }) {
     );
   }
 
-  const conteo = `${finalizadas} de ${plural(total, "gestión finalizada", "gestiones finalizadas")}`;
+  const conteo = `${finalizadas} de ${plural(total, "gestión hecha", "gestiones hechas")}`;
 
   return (
     <>

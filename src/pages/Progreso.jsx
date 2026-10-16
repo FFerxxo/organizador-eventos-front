@@ -17,7 +17,7 @@ function fraseDeAvance(porcentaje) {
     return "Vas empezando. Cada gestión que cierres suma a tus eventos.";
   }
   if (porcentaje < 100) return "Vas a buen ritmo.";
-  return "Todo finalizado.";
+  return "Todo hecho.";
 }
 
 function Progreso() {
@@ -125,8 +125,8 @@ function Progreso() {
               {general.finalizadas} de{" "}
               {plural(
                 general.total,
-                "gestión finalizada",
-                "gestiones finalizadas",
+                "gestión hecha",
+                "gestiones hechas",
               )}
             </strong>
             <p>{fraseDeAvance(general.porcentaje)}</p>
