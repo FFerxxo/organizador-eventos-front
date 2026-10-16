@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import {
@@ -6,30 +6,18 @@ import {
   actualizarSubtarea,
   crearSubtarea,
   eliminarEvento,
-  ejecutarSubtarea,
   eliminarSubtarea,
   listarSubtareas,
   obtenerEvento,
 } from "../api/eventos";
-import BarraProgreso from "../components/BarraProgreso";
 import ConfirmDialog from "../components/ConfirmDialog";
 import EventoForm from "../components/EventoForm";
 import Layout from "../components/Layout";
 import ReprogramarDialog from "../components/ReprogramarDialog";
 import SubtareaForm from "../components/SubtareaForm";
 import { claseEstado, etiquetaEstado } from "../constants";
-import {
-  fechaDeHoy,
-  formatearFecha,
-  formatearFechaHora,
-  soloFecha,
-} from "../utils/fechas";
-import {
-  avanceDe,
-  mensajeHecha,
-  mensajePospuesta,
-  mensajeReprogramada,
-} from "../utils/gestiones";
+import { fechaDeHoy, formatearFecha, formatearFechaHora } from "../utils/fechas";
+import { mensajeReprogramada } from "../utils/gestiones";
 import { enHoras } from "../utils/horas";
 
 // Clase de la rayita de color del borde izquierdo de cada tarea.
@@ -76,20 +64,6 @@ function EventoDetalle() {
   const [confirmandoVarias, setConfirmandoVarias] = useState(false);
   const [eliminandoVarias, setEliminandoVarias] = useState(false);
   const [errorSubtareas, setErrorSubtareas] = useState("");
-  // Tarea recién marcada como hecha: { gestion, estado, mensaje }. "Deshacer"
-  // solo sale mientras el aviso que se ve es el de esa tarea.
-  const [hecha, setHecha] = useState(null);
-  // Id de la tarea que se está guardando (Hecha o Deshacer).
-  const [guardandoId, setGuardandoId] = useState(null);
-  // Deshacer chocó con el límite del día: { gestion, estado, conflicto }.
-  const [reabrir, setReabrir] = useState(null);
-  const [moviendoAlReabrir, setMoviendoAlReabrir] = useState(false);
-  const avisoTareasRef = useRef(null);
-
-  // El botón "Hecha" desaparece al marcarla: el foco pasa al aviso.
-  useEffect(() => {
-    if (hecha || reabrir) avisoTareasRef.current?.focus();
-  }, [hecha, reabrir]);
 
   // El aviso que llega al crear el evento se muestra una sola vez: se quita
   // del historial para que no vuelva a salir al recargar la página.
@@ -124,7 +98,6 @@ function EventoDetalle() {
 
   const cargando = datos.id !== id;
   const { evento, subtareas } = datos;
-  const avance = avanceDe(subtareas);
   const horasTotales = subtareas.reduce(
     (total, subtarea) => total + Number(subtarea.horas_estimadas || 0),
     0,
@@ -144,11 +117,6 @@ function EventoDetalle() {
       ...actuales,
       subtareas: [...actuales.subtareas, creada],
     }));
-  }
-
-  function limpiarAvisosTareas() {
-    setMensajeSubtareas("");
-    setReabrir(null);
   }
 
   function reemplazarSubtarea(actualizada) {
@@ -264,7 +232,7 @@ function EventoDetalle() {
 
     // Se quedan seleccionadas solo las que fallaron, para reintentar.
     setSeleccionadas(new Set(fallidas));
-    limpiarAvisosTareas();
+    setMensajeSubtareas("");
     setErrorSubtareas(
       borradas.length === 0
         ? "No se pudieron eliminar. Vuelve a intentarlo."
@@ -277,82 +245,13 @@ function EventoDetalle() {
     setErrorEliminarSubtarea("");
   }
 
-  // `enviado` llega del diálogo en modo posponer (con la nota que se mandó);
-  // desde "Editar tarea" no hay nota.
-  function alReprogramar(actualizada, enviado) {
+  function alReprogramar(actualizada) {
     setReprogramando(null);
     setSobrecargaAlEditar(null);
     setEditandoSubtarea(null);
-    setMoviendoAlReabrir(false);
-    setReabrir(null);
     reemplazarSubtarea(actualizada);
     setMensaje("");
-    setMensajeSubtareas(
-      enviado
-        ? mensajePospuesta(actualizada, enviado)
-        : mensajeReprogramada(actualizada),
-    );
-  }
-
-  // La barra se calcula con la lista local, así que cambia en el mismo
-  // momento en que se reemplaza la tarea.
-  async function marcarHecha(subtarea) {
-    limpiarAvisosTareas();
-    setErrorSubtareas("");
-    setMensaje("");
-    setGuardandoId(subtarea.id);
-    try {
-      const actualizada = await ejecutarSubtarea(subtarea.id);
-      reemplazarSubtarea(actualizada);
-      const avance = avanceDe(
-        subtareas.map((s) => (s.id === actualizada.id ? actualizada : s)),
-      );
-      const texto = mensajeHecha(subtarea, avance);
-      setMensajeSubtareas(texto);
-      setHecha({ gestion: subtarea, estado: subtarea.estado, mensaje: texto });
-    } catch {
-      setErrorSubtareas(
-        `No pudimos marcar "${subtarea.titulo}" como hecha. Inténtalo de nuevo.`,
-      );
-    } finally {
-      setGuardandoId(null);
-    }
-  }
-
-  // Igual que en /hoy: si al reabrirla el día se pasa del límite, se explica
-  // y se ofrece moverla a otro día.
-  async function deshacer() {
-    const { gestion, estado: anterior } = hecha;
-    setGuardandoId(gestion.id);
-    setErrorSubtareas("");
-    try {
-      const actualizada = await actualizarSubtarea(gestion.id, {
-        estado: anterior,
-      });
-      reemplazarSubtarea(actualizada);
-      setHecha(null);
-      setMensajeSubtareas(
-        `Deshecho. "${gestion.titulo}" vuelve a estar ${etiquetaEstado(anterior).toLowerCase()}.`,
-      );
-    } catch (error) {
-      if (
-        error instanceof ApiError &&
-        error.status === 409 &&
-        error.data?.codigo === "sobrecarga_diaria"
-      ) {
-        setHecha(null);
-        setMensajeSubtareas("");
-        setReabrir({
-          gestion,
-          estado: anterior,
-          conflicto: { ...error.data.conflicto, mensaje: error.message },
-        });
-      } else {
-        setErrorSubtareas("No pudimos deshacerlo. Inténtalo de nuevo.");
-      }
-    } finally {
-      setGuardandoId(null);
-    }
+    setMensajeSubtareas(mensajeReprogramada(actualizada));
   }
 
   async function confirmarEliminar() {
@@ -500,57 +399,9 @@ function EventoDetalle() {
           )}
         </div>
 
-        {subtareas.length > 0 && (
-          <div className="avance-evento">
-            <div className="avance-cabecera">
-              <h3 id="avance-evento-titulo">Avance del evento</h3>
-              <strong>{avance.porcentaje} %</strong>
-            </div>
-            <BarraProgreso avance={avance} idEtiqueta="avance-evento-titulo" />
-          </div>
-        )}
-
         {mensajeSubtareas && (
-          <p
-            className="alert-success aviso-con-accion"
-            role="status"
-            tabIndex={-1}
-            ref={avisoTareasRef}
-          >
-            <span>{mensajeSubtareas}</span>
-            {hecha?.mensaje === mensajeSubtareas && (
-              <button
-                type="button"
-                className="enlace"
-                disabled={guardandoId === hecha.gestion.id}
-                onClick={deshacer}
-              >
-                {guardandoId === hecha.gestion.id
-                  ? "Deshaciendo..."
-                  : "Deshacer"}
-              </button>
-            )}
-          </p>
-        )}
-
-        {reabrir && (
-          <p
-            className="alert-error aviso-con-accion"
-            role="alert"
-            tabIndex={-1}
-            ref={avisoTareasRef}
-          >
-            <span>
-              No pudimos reabrir "{reabrir.gestion.titulo}": ese día ya está
-              lleno. {reabrir.conflicto.mensaje}.
-            </span>
-            <button
-              type="button"
-              className="enlace"
-              onClick={() => setMoviendoAlReabrir(true)}
-            >
-              Posponer a otro día
-            </button>
+          <p className="alert-success" role="status">
+            {mensajeSubtareas}
           </p>
         )}
 
@@ -636,9 +487,6 @@ function EventoDetalle() {
                   <div>
                     <strong>{subtarea.titulo}</strong>
                     {subtarea.descripcion && <p>{subtarea.descripcion}</p>}
-                    {subtarea.nota && (
-                      <p className="fila-nota">Nota: {subtarea.nota}</p>
-                    )}
                     <small>
                       {formatearFecha(subtarea.fecha_objetivo)} ·{" "}
                       {enHoras(subtarea.horas_estimadas)}
@@ -651,25 +499,12 @@ function EventoDetalle() {
                       {etiquetaEstado(subtarea.estado)}
                     </span>
                     <div className="subtask-botones">
-                      {subtarea.estado !== "finalizado" && (
-                        <button
-                          type="button"
-                          className="btn chico"
-                          aria-label={`Marcar ${subtarea.titulo} como hecha`}
-                          disabled={guardandoId !== null}
-                          onClick={() => marcarHecha(subtarea)}
-                        >
-                          {guardandoId === subtarea.id
-                            ? "Guardando..."
-                            : "Hecha"}
-                        </button>
-                      )}
                       <button
                         type="button"
                         className="enlace"
                         aria-label={`Editar ${subtarea.titulo}`}
                         onClick={() => {
-                          limpiarAvisosTareas();
+                          setMensajeSubtareas("");
                           setEditandoSubtarea(subtarea.id);
                         }}
                       >
@@ -679,13 +514,13 @@ function EventoDetalle() {
                         <button
                           type="button"
                           className="enlace"
-                          aria-label={`Posponer ${subtarea.titulo}`}
+                          aria-label={`Reprogramar ${subtarea.titulo}`}
                           onClick={() => {
-                            limpiarAvisosTareas();
+                            setMensajeSubtareas("");
                             setReprogramando(subtarea);
                           }}
                         >
-                          Posponer
+                          Reprogramar
                         </button>
                       )}
                       <button
@@ -693,7 +528,7 @@ function EventoDetalle() {
                         className="enlace rojo"
                         aria-label={`Eliminar ${subtarea.titulo}`}
                         onClick={() => {
-                          limpiarAvisosTareas();
+                          setMensajeSubtareas("");
                           setSubtareaAEliminar(subtarea);
                         }}
                       >
@@ -717,20 +552,7 @@ function EventoDetalle() {
         <ReprogramarDialog
           key={reprogramando.id}
           gestion={reprogramando}
-          fechaMaxima={soloFecha(evento.fecha_hora)}
           onCerrar={() => setReprogramando(null)}
-          onGuardado={alReprogramar}
-        />
-      )}
-
-      {reabrir && moviendoAlReabrir && (
-        <ReprogramarDialog
-          key={`reabrir-${reabrir.gestion.id}`}
-          gestion={reabrir.gestion}
-          fechaMaxima={soloFecha(evento.fecha_hora)}
-          conflictoInicial={reabrir.conflicto}
-          pendientes={{ estado: reabrir.estado }}
-          onCerrar={() => setMoviendoAlReabrir(false)}
           onGuardado={alReprogramar}
         />
       )}
@@ -738,7 +560,6 @@ function EventoDetalle() {
       {sobrecargaAlEditar && (
         <ReprogramarDialog
           key={`editar-${sobrecargaAlEditar.gestion.id}`}
-          modo="editar"
           gestion={sobrecargaAlEditar.gestion}
           conflictoInicial={sobrecargaAlEditar.conflicto}
           pendientes={sobrecargaAlEditar.cambios}
