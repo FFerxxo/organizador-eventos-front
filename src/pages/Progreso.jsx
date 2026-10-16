@@ -2,13 +2,22 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarEventos, listarSubtareas } from "../api/eventos";
 import abejorroMoto from "../assets/brand/abejorro-moto.svg";
-import BarraProgreso from "../components/BarraProgreso";
 import Layout from "../components/Layout";
+import { normalizarEstado } from "../constants";
 import { formatearFecha, soloFecha } from "../utils/fechas";
-import { avanceDe } from "../utils/gestiones";
 
 const plural = (n, singular, pluralizado) =>
   `${n} ${n === 1 ? singular : pluralizado}`;
+
+// Avance de un evento: cuántas de sus gestiones están finalizadas.
+function avanceDe(gestiones) {
+  const total = gestiones.length;
+  const finalizadas = gestiones.filter(
+    (gestion) => normalizarEstado(gestion.estado) === "finalizado",
+  ).length;
+  const porcentaje = total === 0 ? 0 : Math.round((finalizadas / total) * 100);
+  return { total, finalizadas, porcentaje };
+}
 
 // Frase de ánimo según el avance de todos los eventos juntos.
 function fraseDeAvance(porcentaje) {
@@ -25,23 +34,6 @@ function Progreso() {
   const [error, setError] = useState("");
   // Cambia cada vez que se pulsa "Reintentar" para repetir la petición.
   const [intento, setIntento] = useState(0);
-  // Cambia al volver a la pestaña: se vuelve a pedir en silencio (sin el
-  // "Cargando...") para que el avance refleje lo marcado en otra vista.
-  const [refresco, setRefresco] = useState(0);
-
-  useEffect(() => {
-    function alVolver() {
-      if (document.visibilityState === "visible") {
-        setRefresco((actual) => actual + 1);
-      }
-    }
-    window.addEventListener("focus", alVolver);
-    document.addEventListener("visibilitychange", alVolver);
-    return () => {
-      window.removeEventListener("focus", alVolver);
-      document.removeEventListener("visibilitychange", alVolver);
-    };
-  }, []);
 
   useEffect(() => {
     let activo = true;
@@ -51,11 +43,12 @@ function Progreso() {
     listarEventos()
       .then((lista) =>
         Promise.all(
-          lista.map(async (evento) => {
-            const gestiones =
-              evento.subtareas ?? (await listarSubtareas(evento.id));
-            return { ...evento, gestiones, avance: avanceDe(gestiones) };
-          }),
+          lista.map(async (evento) => ({
+            ...evento,
+            avance: avanceDe(
+              evento.subtareas ?? (await listarSubtareas(evento.id)),
+            ),
+          })),
         ),
       )
       .then((lista) => {
@@ -69,7 +62,7 @@ function Progreso() {
     return () => {
       activo = false;
     };
-  }, [intento, refresco]);
+  }, [intento]);
 
   function reintentar() {
     setError("");
@@ -77,11 +70,17 @@ function Progreso() {
     setIntento((actual) => actual + 1);
   }
 
-  // Avance de todos los eventos juntos, para la franja de arriba. Usa la
-  // misma fórmula (y el mismo redondeo) que cada evento.
-  const general = avanceDe(
-    (eventos ?? []).flatMap((evento) => evento.gestiones),
-  );
+  // Avance de todos los eventos juntos, para la franja de arriba.
+  const general = { total: 0, finalizadas: 0, porcentaje: 0 };
+  for (const evento of eventos ?? []) {
+    general.total += evento.avance.total;
+    general.finalizadas += evento.avance.finalizadas;
+  }
+  if (general.total > 0) {
+    general.porcentaje = Math.round(
+      (general.finalizadas / general.total) * 100,
+    );
+  }
 
   return (
     <Layout ocultarCrear={eventos?.length === 0}>
@@ -138,7 +137,7 @@ function Progreso() {
       {eventos?.length > 0 && (
         <ul className="panel avance-lista">
           {eventos.map((evento) => {
-            const { total, porcentaje } = evento.avance;
+            const { total, finalizadas, porcentaje } = evento.avance;
             const idNombre = `avance-${evento.id}`;
 
             return (
@@ -153,7 +152,39 @@ function Progreso() {
                   {total > 0 && <strong>{porcentaje} %</strong>}
                 </div>
 
-                <BarraProgreso avance={evento.avance} idEtiqueta={idNombre} />
+                {total > 0 ? (
+                  <>
+                    <div
+                      className="avance-pista"
+                      role="progressbar"
+                      aria-labelledby={idNombre}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={porcentaje}
+                      aria-valuetext={`${finalizadas} de ${plural(total, "gestión finalizada", "gestiones finalizadas")}`}
+                    >
+                      <div
+                        className="avance-relleno"
+                        style={{ width: `${porcentaje}%` }}
+                      />
+                    </div>
+                    <p className="avance-conteo">
+                      {finalizadas} de{" "}
+                      {plural(
+                        total,
+                        "gestión finalizada",
+                        "gestiones finalizadas",
+                      )}
+                      {finalizadas === total
+                        ? ". Todo listo."
+                        : `. ${total - finalizadas === 1 ? "Falta" : "Faltan"} ${total - finalizadas}.`}
+                    </p>
+                  </>
+                ) : (
+                  <p className="avance-conteo">
+                    Este evento todavía no tiene gestiones.
+                  </p>
+                )}
               </li>
             );
           })}
