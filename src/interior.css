@@ -703,6 +703,7 @@
   font-size: 14.5px;
   font-style: italic;
   color: var(--ink);
+  overflow-wrap: anywhere;
 }
 
 .fila-botones {
@@ -1673,12 +1674,15 @@
     font-size: 15px;
   }
 
+  .barra-lateral .usuario {
+    min-width: 0;
+  }
+
   .barra-lateral .usuario-nombre {
     flex: 1;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
+    text-align: left;
   }
 
   .barra-lateral .usuario-flecha {
