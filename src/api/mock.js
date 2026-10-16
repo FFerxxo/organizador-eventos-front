@@ -1,3 +1,4 @@
+import { normalizarEstado, ocupaElDia } from "../constants";
 import { cambiosAlEjecutar, cambiosAlPosponer } from "../utils/gestiones";
 import { numeroDeHoras } from "../utils/horas";
 import { ApiError } from "./client";
@@ -99,7 +100,7 @@ let subtareas = [
     descripcion: "",
     fecha_objetivo: enDias(9),
     horas_estimadas: 1,
-    estado: "finalizado",
+    estado: "hecha",
     nota: "",
   },
 ];
@@ -188,13 +189,13 @@ export function crearSubtarea(eventoId, datos) {
   return responder(subtarea);
 }
 
-// Horas sin finalizar planificadas para un día, sin contar una gestión.
+// Horas por hacer planificadas para un día, sin contar una gestión.
 function horasDelDia(fecha, sinId) {
   return subtareas
     .filter(
       (subtarea) =>
         subtarea.id !== sinId &&
-        subtarea.estado !== "finalizado" &&
+        ocupaElDia(subtarea.estado) &&
         subtarea.fecha_objetivo === fecha,
     )
     .reduce((total, subtarea) => total + Number(subtarea.horas_estimadas), 0);
@@ -267,11 +268,11 @@ export function actualizarSubtarea(id, cambios) {
   const horas = Number(nueva.horas_estimadas);
   const horasAntes =
     actual.fecha_objetivo === nueva.fecha_objetivo &&
-    actual.estado !== "finalizado"
+    ocupaElDia(actual.estado)
       ? Number(actual.horas_estimadas)
       : 0;
 
-  if (nueva.estado !== "finalizado" && horas > horasAntes) {
+  if (ocupaElDia(nueva.estado) && horas > horasAntes) {
     const otras = horasDelDia(nueva.fecha_objetivo, actual.id);
     const planificadas = otras + horas;
 
@@ -339,7 +340,7 @@ export function eliminarSubtarea(id) {
 }
 
 // Misma agrupación y orden que GET /api/subtareas/hoy/: no incluye las
-// finalizadas; ordena por fecha objetivo y, en empate, por menos horas.
+// hechas ni pospuestas; ordena por fecha objetivo y, en empate, por menos horas.
 export function obtenerGestionesHoy({ eventoId, estado } = {}) {
   if (eventoId && !buscarEvento(eventoId)) {
     return Promise.reject(
@@ -352,9 +353,9 @@ export function obtenerGestionesHoy({ eventoId, estado } = {}) {
   const hoy = enDias(0);
   const pendientes = subtareas.filter(
     (subtarea) =>
-      subtarea.estado !== "finalizado" &&
+      ocupaElDia(subtarea.estado) &&
       (!eventoId || subtarea.evento === Number(eventoId)) &&
-      (!estado || subtarea.estado === estado),
+      (!estado || normalizarEstado(subtarea.estado) === normalizarEstado(estado)),
   );
   const porFechaYHoras = (a, b) =>
     a.fecha_objetivo.localeCompare(b.fecha_objetivo) ||

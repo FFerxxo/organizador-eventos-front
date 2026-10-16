@@ -17,7 +17,7 @@ import EventoForm from "../components/EventoForm";
 import Layout from "../components/Layout";
 import ReprogramarDialog from "../components/ReprogramarDialog";
 import SubtareaForm from "../components/SubtareaForm";
-import { claseEstado, etiquetaEstado } from "../constants";
+import { claseEstado, etiquetaEstado, normalizarEstado } from "../constants";
 import {
   fechaDeHoy,
   formatearFecha,
@@ -35,7 +35,7 @@ import { enHoras } from "../utils/horas";
 // Clase de la rayita de color del borde izquierdo de cada tarea.
 function claseRaya(subtarea, hoy) {
   const estado = claseEstado(subtarea.estado);
-  if (estado === "finalizado") return "raya-finalizado";
+  if (estado === "hecha") return "raya-hecha";
   if (subtarea.fecha_objetivo < hoy) return "raya-vencida";
   if (estado === "en_progreso") return "raya-en_progreso";
   return "raya-pendiente";
@@ -651,7 +651,7 @@ function EventoDetalle() {
                       {etiquetaEstado(subtarea.estado)}
                     </span>
                     <div className="subtask-botones">
-                      {subtarea.estado !== "finalizado" && (
+                      {normalizarEstado(subtarea.estado) !== "hecha" && (
                         <button
                           type="button"
                           className="btn chico"
@@ -675,7 +675,7 @@ function EventoDetalle() {
                       >
                         Editar
                       </button>
-                      {subtarea.estado !== "finalizado" && (
+                      {normalizarEstado(subtarea.estado) !== "hecha" && (
                         <button
                           type="button"
                           className="enlace"

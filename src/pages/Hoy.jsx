@@ -17,7 +17,7 @@ import {
   claseEstado,
   ESTADOS_FILTRO_HOY,
   etiquetaEstado,
-  normalizarEstado,
+  ocupaElDia,
 } from "../constants";
 import {
   diasEntre,
@@ -357,7 +357,7 @@ function Hoy() {
     .filter(
       (gestion) =>
         gestion.fecha_objetivo === gestiones.fecha_actual &&
-        normalizarEstado(gestion.estado) !== "finalizado",
+        ocupaElDia(gestion.estado),
     )
     .reduce((total, gestion) => total + Number(gestion.horas_estimadas), 0);
   const limiteDiario = Number(limite?.limite_horas_dia);

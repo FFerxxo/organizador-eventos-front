@@ -9,7 +9,7 @@ import { enHoras } from "./horas";
 export function avanceDe(gestiones) {
   const total = gestiones.length;
   const finalizadas = gestiones.filter(
-    (gestion) => normalizarEstado(gestion.estado) === "finalizado",
+    (gestion) => normalizarEstado(gestion.estado) === "hecha",
   ).length;
   const porcentaje = total === 0 ? 0 : Math.round((finalizadas / total) * 100);
   return { total, finalizadas, pendientes: total - finalizadas, porcentaje };
@@ -25,7 +25,7 @@ function conNota(nota) {
 // Cuerpo de "Hecha". Es el mismo que llevará POST /ejecutar/ (más el estado,
 // que el endpoint dedicado pondrá por su cuenta).
 export function cambiosAlEjecutar({ nota } = {}) {
-  return { estado: "finalizado", ...conNota(nota) };
+  return { estado: "hecha", ...conNota(nota) };
 }
 
 // Cuerpo de "Posponer": nueva fecha, horas si cambiaron y nota opcional.

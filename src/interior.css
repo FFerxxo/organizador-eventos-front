@@ -1075,7 +1075,7 @@
 
 .interior .subtask-status,
 .interior .subtask-status.en_progreso,
-.interior .subtask-status.finalizado {
+.interior .subtask-status.hecha {
   min-width: 104px;
   padding: 0;
   border-radius: 0;
@@ -1090,7 +1090,7 @@
   color: var(--today);
 }
 
-.interior .subtask-status.finalizado {
+.interior .subtask-status.hecha {
   color: var(--ok);
 }
 
@@ -1132,7 +1132,7 @@
   --raya: #e0a63a;
 }
 
-.subtask-list li.raya-finalizado {
+.subtask-list li.raya-hecha {
   --raya: var(--ok);
 }
 
