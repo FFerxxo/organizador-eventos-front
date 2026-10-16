@@ -28,15 +28,16 @@ export function cambiosAlEjecutar({ nota } = {}) {
   return { estado: "hecha", ...conNota(nota) };
 }
 
-// Cuerpo de "Posponer": nueva fecha, horas si cambiaron y nota opcional.
-// `estado` solo llega cuando se reabre una gestión hecha (Deshacer con
-// sobrecarga) para moverla y reabrirla en un solo guardado.
+// Cuerpo de "Posponer": nueva fecha, horas si cambiaron, nota opcional y el
+// estado "pospuesta". `estado` solo llega distinto cuando se reabre una
+// gestión hecha (Deshacer con sobrecarga) para moverla y reabrirla en un
+// solo guardado.
 export function cambiosAlPosponer({ fecha_objetivo, horas_estimadas, nota, estado } = {}) {
   return {
     fecha_objetivo,
     ...(horas_estimadas ? { horas_estimadas } : {}),
     ...conNota(nota),
-    ...(estado ? { estado } : {}),
+    estado: estado || "pospuesta",
   };
 }
 
@@ -61,8 +62,12 @@ export function mensajeHecha(gestion, avance) {
 }
 
 // Aviso después de posponer. "Nota guardada" solo sale si el back devolvió
-// la nota que se mandó: si todavía no la guarda, no se promete nada.
+// la nota que se mandó: si todavía no la guarda, no se promete nada. Si la
+// gestión se reabrió al moverla, se avisa como una reprogramación normal.
 export function mensajePospuesta(gestion, { nota } = {}) {
+  if (normalizarEstado(gestion.estado) !== "pospuesta") {
+    return mensajeReprogramada(gestion);
+  }
   const guardada = nota && gestion.nota === nota ? " Nota guardada." : "";
-  return `${mensajeReprogramada(gestion)}${guardada}`;
+  return `Listo. "${gestion.titulo}" quedó pospuesta para el ${formatearFecha(gestion.fecha_objetivo)}.${guardada}`;
 }

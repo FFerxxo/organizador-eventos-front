@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { ApiError, erroresDeApi } from "../api/client";
 import { actualizarSubtarea, posponerSubtarea } from "../api/eventos";
-import { formatearFecha, formatearFechaConDia } from "../utils/fechas";
+import {
+  diaSiguiente,
+  fechaDeHoy,
+  formatearFecha,
+  formatearFechaConDia,
+} from "../utils/fechas";
 import { enHoras } from "../utils/horas";
 import Campo from "./Campo";
 
@@ -25,7 +30,9 @@ function Flecha() {
 // persona cambió (título, estado...), para que se guarde con el PATCH junto
 // con la salida que elija.
 //
-// `fechaMaxima` es el día del evento: no se puede posponer más allá.
+// `fechaMaxima` es el día del evento: no se puede posponer más allá. Al
+// posponer solo se avanza: desde el día siguiente al actual y nunca antes de
+// hoy.
 function ReprogramarDialog({
   gestion,
   modo = "posponer",
@@ -52,6 +59,12 @@ function ReprogramarDialog({
   const [errorHoras, setErrorHoras] = useState("");
   const [errorGeneral, setErrorGeneral] = useState("");
   const [guardando, setGuardando] = useState(false);
+
+  // Al posponer (no al reabrir una hecha) la fecha solo puede ir hacia adelante.
+  const soloAdelante = conNota && !pendientes.estado;
+  const fechaMinima = soloAdelante
+    ? [fechaDeHoy(), diaSiguiente(gestion.fecha_objetivo)].sort().at(-1)
+    : "";
 
   useEffect(() => {
     dialogRef.current.showModal();
@@ -142,6 +155,12 @@ function ReprogramarDialog({
       setErrorHoras("Las horas estimadas deben ser mayores a 0.");
       return;
     }
+    if (fechaMinima && fecha < fechaMinima) {
+      setErrorCampo(
+        `Para posponer elige un día desde el ${formatearFecha(fechaMinima)}.`,
+      );
+      return;
+    }
     if (fechaMaxima && fecha > fechaMaxima) {
       setErrorCampo(
         `Elige un día hasta el del evento (${formatearFecha(fechaMaxima)}).`,
@@ -204,7 +223,9 @@ function ReprogramarDialog({
     : 0;
 
   // Días cercanos donde la gestión sí cabe, calculados por el backend.
-  const sugeridas = conflicto?.fechas_sugeridas;
+  const sugeridas = fechaMinima
+    ? conflicto?.fechas_sugeridas?.filter((s) => s.fecha >= fechaMinima)
+    : conflicto?.fechas_sugeridas;
 
   // Primer día posterior donde la gestión cabe: null si no hay ninguno antes
   // del evento.
@@ -284,6 +305,7 @@ function ReprogramarDialog({
                 sugeridas?.length > 0 ? "O elige otra fecha" : "Nueva fecha"
               }
               name="fecha_objetivo"
+              min={fechaMinima || undefined}
               max={fechaMaxima || undefined}
               value={fecha}
               onChange={(e) => {
