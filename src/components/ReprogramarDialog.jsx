@@ -58,7 +58,8 @@ function ReprogramarDialog({
     String(Number(gestion.horas_estimadas)),
   );
   const [horas, setHoras] = useState("");
-  const [nota, setNota] = useState("");
+  // Al deshacer con choque, la nota de antes ya viene en `pendientes`.
+  const [nota, setNota] = useState(pendientes.nota ?? "");
   const [conflicto, setConflicto] = useState(conflictoInicial);
   const [errorCampo, setErrorCampo] = useState("");
   const [errorHoras, setErrorHoras] = useState("");
