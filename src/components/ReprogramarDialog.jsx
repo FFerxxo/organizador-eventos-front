@@ -4,6 +4,7 @@ import { actualizarSubtarea, posponerSubtarea } from "../api/eventos";
 import {
   diaSiguiente,
   fechaDeHoy,
+  formatearDiaCorto,
   formatearFecha,
   formatearFechaConDia,
 } from "../utils/fechas";
@@ -172,13 +173,13 @@ function ReprogramarDialog({
     }
     if (fechaMinima && fecha < fechaMinima) {
       setErrorCampo(
-        `Para posponer elige un día desde el ${formatearFecha(fechaMinima)}.`,
+        `Para posponer elige un día desde el ${formatearDiaCorto(fechaMinima)}.`,
       );
       return;
     }
     if (fechaMaxima && fecha > fechaMaxima) {
       setErrorCampo(
-        `Elige un día hasta el del evento (${formatearFecha(fechaMaxima)}).`,
+        `Elige un día hasta el del evento (${formatearDiaCorto(fechaMaxima)}).`,
       );
       return;
     }
@@ -308,8 +309,8 @@ function ReprogramarDialog({
           )}
           {sinDiaPosible && (
             <p className="alert-error" role="alert">
-              Esta tarea ya quedó después del día del evento, así que no se
-              puede posponer. Cámbiale la fecha con Editar, en el evento.
+              No se puede posponer porque ya no queda ningún día antes del
+              evento. Si hace falta, cámbiale la fecha con Editar.
             </p>
           )}
 
