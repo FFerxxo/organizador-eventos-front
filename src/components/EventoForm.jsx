@@ -79,6 +79,7 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
       )}
 
       <Campo
+        obligatorio
         label="Nombre del evento"
         name="nombre"
         placeholder="Ejemplo: Boda de Ana y Luis"
@@ -90,6 +91,7 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
       <div className="form-row">
         <Campo
           as="select"
+          obligatorio
           label="Tipo de evento"
           name="tipo"
           value={valores.tipo}
@@ -106,6 +108,7 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
 
         <Campo
           type="datetime-local"
+          obligatorio
           label="Fecha y hora del evento"
           name="fecha_hora"
           value={valores.fecha_hora}
@@ -115,6 +118,7 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
       </div>
 
       <Campo
+        obligatorio
         label="Lugar"
         name="lugar"
         placeholder="Ejemplo: Hacienda El Roble"
@@ -124,6 +128,7 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
       />
 
       <Campo
+        obligatorio
         label="Nombre del cliente"
         name="cliente_nombre"
         placeholder="Ejemplo: Ana Gómez"

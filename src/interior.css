@@ -961,6 +961,12 @@
   color: var(--late);
 }
 
+.interior .campo-obligatorio {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
 .interior .field-help {
   font-size: 14px;
   font-weight: 400;

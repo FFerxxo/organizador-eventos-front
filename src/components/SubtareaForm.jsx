@@ -91,6 +91,7 @@ function SubtareaForm({ subtarea, fechaMaxima = "", onSubmit, onCancelar }) {
       )}
 
       <Campo
+        obligatorio
         label="Título"
         name="titulo"
         placeholder="Ejemplo: Confirmar catering"
@@ -113,6 +114,7 @@ function SubtareaForm({ subtarea, fechaMaxima = "", onSubmit, onCancelar }) {
       <div className="form-row">
         <Campo
           type="date"
+          obligatorio
           label="Fecha objetivo"
           name="fecha_objetivo"
           max={fechaMaxima || undefined}
@@ -126,6 +128,7 @@ function SubtareaForm({ subtarea, fechaMaxima = "", onSubmit, onCancelar }) {
           min="0"
           step="0.5"
           inputMode="decimal"
+          obligatorio
           label="Horas estimadas"
           name="horas_estimadas"
           placeholder="Ejemplo: 2"
