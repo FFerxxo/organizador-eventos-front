@@ -162,6 +162,23 @@ export function actualizarEvento(id, datos) {
   const actual = buscarEvento(id);
   if (!actual) return noEncontrado();
 
+  // Igual que el backend: el día nuevo no puede quedar antes de la última tarea.
+  const ultima = subtareas
+    .filter((subtarea) => subtarea.evento === actual.id)
+    .map((subtarea) => subtarea.fecha_objetivo)
+    .sort()
+    .at(-1);
+  const diaNuevo = datos.fecha_hora && String(datos.fecha_hora).slice(0, 10);
+  if (diaNuevo && diaNuevo !== String(actual.fecha_hora).slice(0, 10) && ultima > diaNuevo) {
+    const [, mes, dia] = ultima.split("-").map(Number);
+    const mesCorto = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][mes - 1];
+    return Promise.reject(
+      new ApiError(400, {
+        fecha_hora: [`Tienes tareas hasta el ${dia} ${mesCorto}. Muévelas antes o elige un día posterior.`],
+      }),
+    );
+  }
+
   const actualizado = { ...actual, ...datos, id: actual.id };
   actualizado.cliente_contacto = contactoDe(actualizado);
   eventos = eventos.map((evento) =>
