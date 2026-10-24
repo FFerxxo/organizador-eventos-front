@@ -566,11 +566,11 @@ function Hoy() {
                 >
                   <div className="grupo-cabecera">
                     <h2 id={idTitulo}>{grupo.titulo}</h2>
-                    <span
-                      className="grupo-cantidad"
-                      aria-label={plural(lista.length, "tarea", "tareas")}
-                    >
-                      {lista.length}
+                    <span className="grupo-cantidad">
+                      <span aria-hidden="true">{lista.length}</span>
+                      <span className="visually-hidden">
+                        {plural(lista.length, "tarea", "tareas")}
+                      </span>
                     </span>
                   </div>
 
