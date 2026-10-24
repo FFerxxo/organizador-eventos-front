@@ -2,8 +2,10 @@ import { useNavigate } from "react-router-dom";
 import { crearEvento } from "../api/eventos";
 import EventoForm from "../components/EventoForm";
 import Layout from "../components/Layout";
+import { useTitulo } from "../utils/useTitulo";
 
 function CrearEvento() {
+  useTitulo("Crear evento");
   const navigate = useNavigate();
 
   async function handleSubmit(datos) {

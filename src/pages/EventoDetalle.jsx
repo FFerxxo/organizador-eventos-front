@@ -35,6 +35,7 @@ import {
   mensajeReprogramada,
 } from "../utils/gestiones";
 import { enHoras } from "../utils/horas";
+import { useTitulo } from "../utils/useTitulo";
 
 // Clase de la rayita de color del borde izquierdo de cada tarea.
 function claseRaya(subtarea, hoy) {
@@ -57,6 +58,7 @@ function EventoDetalle() {
     subtareas: [],
     error: "",
   });
+  useTitulo(datos.evento?.nombre ?? "Evento");
   const [mensaje, setMensaje] = useState(state?.mensaje ?? "");
   const [editando, setEditando] = useState(false);
   const [confirmando, setConfirmando] = useState(false);

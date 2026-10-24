@@ -5,10 +5,12 @@ import Campo from "../components/Campo";
 import PortadaAcceso from "../components/PortadaAcceso";
 import { useAuth } from "../context/AuthContext";
 import { validarRegistro } from "../utils/validaciones";
+import { useTitulo } from "../utils/useTitulo";
 
 const CAMPOS = ["nombre", "email", "password"];
 
 function Registro() {
+  useTitulo("Crear cuenta");
   const { registrar, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 

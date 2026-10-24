@@ -6,6 +6,7 @@ import BarraProgreso from "../components/BarraProgreso";
 import Layout from "../components/Layout";
 import { formatearFecha, soloFecha } from "../utils/fechas";
 import { avanceDe } from "../utils/gestiones";
+import { useTitulo } from "../utils/useTitulo";
 
 const plural = (n, singular, pluralizado) =>
   `${n} ${n === 1 ? singular : pluralizado}`;
@@ -21,6 +22,7 @@ function fraseDeAvance(porcentaje) {
 }
 
 function Progreso() {
+  useTitulo("Progreso");
   const [eventos, setEventos] = useState(null);
   const [error, setError] = useState("");
   // Cambia cada vez que se pulsa "Reintentar" para repetir la petición.
