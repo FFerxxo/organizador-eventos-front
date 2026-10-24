@@ -71,6 +71,11 @@ function ReprogramarDialog({
   const fechaMinima = soloAdelante
     ? [fechaDeHoy(), diaSiguiente(gestion.fecha_objetivo)].sort().at(-1)
     : "";
+  // Una tarea de antes que ya quedó después del evento no tiene ningún día
+  // para posponerla: se explica en vez de mostrar dos avisos que chocan.
+  const sinDiaPosible = Boolean(
+    fechaMinima && fechaMaxima && fechaMinima > fechaMaxima,
+  );
 
   useEffect(() => {
     dialogRef.current.showModal();
@@ -301,60 +306,68 @@ function ReprogramarDialog({
               fecha o vuelve y reduce las horas.
             </p>
           )}
+          {sinDiaPosible && (
+            <p className="alert-error" role="alert">
+              Esta tarea ya quedó después del día del evento, así que no se
+              puede posponer. Cámbiale la fecha con Editar, en el evento.
+            </p>
+          )}
 
-          <div className="form-grid">
-            {errorGeneral && (
-              <p className="alert-error" role="alert">
-                {errorGeneral}
-              </p>
-            )}
+          {!sinDiaPosible && (
+            <div className="form-grid">
+              {errorGeneral && (
+                <p className="alert-error" role="alert">
+                  {errorGeneral}
+                </p>
+              )}
 
-            <Campo
-              type="date"
-              label={
-                sugeridas?.length > 0 ? "O elige otra fecha" : "Nueva fecha"
-              }
-              name="fecha_objetivo"
-              min={fechaMinima || undefined}
-              max={fechaMaxima || undefined}
-              value={fecha}
-              onChange={(e) => {
-                setFecha(e.target.value);
-                setErrorCampo("");
-              }}
-              error={errorCampo}
-            />
-
-            <Campo
-              type="number"
-              inputMode="decimal"
-              min="0.5"
-              step="0.5"
-              label="Horas estimadas"
-              name="horas_estimadas"
-              value={horasGestion}
-              onChange={(e) => {
-                setHorasGestion(e.target.value);
-                setErrorCampo("");
-                setErrorHoras("");
-              }}
-              ayuda="Puedes usar medias horas: 1,5 h = 1 h 30 min"
-              error={errorHoras}
-            />
-
-            {conNota && (
               <Campo
-                as="textarea"
-                rows={2}
-                maxLength={200}
-                label="Nota (opcional)"
-                name="nota"
-                ayuda="Ej.: esperando confirmación del salón. La verás junto a la tarea."
-                value={nota}
-                onChange={(e) => setNota(e.target.value)}
+                type="date"
+                label={
+                  sugeridas?.length > 0 ? "O elige otra fecha" : "Nueva fecha"
+                }
+                name="fecha_objetivo"
+                min={fechaMinima || undefined}
+                max={fechaMaxima || undefined}
+                value={fecha}
+                onChange={(e) => {
+                  setFecha(e.target.value);
+                  setErrorCampo("");
+                }}
+                error={errorCampo}
               />
-            )}
-          </div>
+
+              <Campo
+                type="number"
+                inputMode="decimal"
+                min="0.5"
+                step="0.5"
+                label="Horas estimadas"
+                name="horas_estimadas"
+                value={horasGestion}
+                onChange={(e) => {
+                  setHorasGestion(e.target.value);
+                  setErrorCampo("");
+                  setErrorHoras("");
+                }}
+                ayuda="Puedes usar medias horas: 1,5 h = 1 h 30 min"
+                error={errorHoras}
+              />
+
+              {conNota && (
+                <Campo
+                  as="textarea"
+                  rows={2}
+                  maxLength={200}
+                  label="Nota (opcional)"
+                  name="nota"
+                  ayuda="Ej.: esperando confirmación del salón. La verás junto a la tarea."
+                  value={nota}
+                  onChange={(e) => setNota(e.target.value)}
+                />
+              )}
+            </div>
+          )}
 
           <div className="form-actions">
             <button
@@ -365,9 +378,15 @@ function ReprogramarDialog({
             >
               {conflicto ? "Volver" : "Cancelar"}
             </button>
-            <button type="submit" disabled={guardando}>
-              {guardando ? "Guardando..." : conNota ? "Posponer" : "Reprogramar"}
-            </button>
+            {!sinDiaPosible && (
+              <button type="submit" disabled={guardando}>
+                {guardando
+                  ? "Guardando..."
+                  : conNota
+                    ? "Posponer"
+                    : "Reprogramar"}
+              </button>
+            )}
           </div>
         </form>
       )}
