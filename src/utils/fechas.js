@@ -99,10 +99,14 @@ export function partesDeFecha(valor) {
   };
 }
 
+// Meses cortos fijos, los mismos del back: el navegador escribe "sept" y el
+// back "sep", y el mismo aviso tiene que decir lo mismo en los dos.
+const MESES_CORTOS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
 // "14 nov": el día del evento dentro de un mensaje.
 export function formatearDiaCorto(valor) {
-  const { dia, mes } = partesDeFecha(valor);
-  return `${dia} ${mes}`;
+  const fecha = leerFecha(valor);
+  return `${fecha.getDate()} ${MESES_CORTOS[fecha.getMonth()]}`;
 }
 
 // Fecha local (AAAA-MM-DD) de un valor con hora, para compararla con otras.

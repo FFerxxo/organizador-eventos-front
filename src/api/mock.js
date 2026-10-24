@@ -1,4 +1,5 @@
 import { normalizarEstado, ocupaElDia } from "../constants";
+import { formatearDiaCorto } from "../utils/fechas";
 import { cambiosAlEjecutar, cambiosAlPosponer } from "../utils/gestiones";
 import { numeroDeHoras } from "../utils/horas";
 import { ApiError } from "./client";
@@ -170,11 +171,9 @@ export function actualizarEvento(id, datos) {
     .at(-1);
   const diaNuevo = datos.fecha_hora && String(datos.fecha_hora).slice(0, 10);
   if (diaNuevo && diaNuevo !== String(actual.fecha_hora).slice(0, 10) && ultima > diaNuevo) {
-    const [, mes, dia] = ultima.split("-").map(Number);
-    const mesCorto = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][mes - 1];
     return Promise.reject(
       new ApiError(400, {
-        fecha_hora: [`Pasa esas tareas a un día anterior o elige un día desde el ${dia} ${mesCorto}.`],
+        fecha_hora: [`Pasa esas tareas a un día anterior o elige un día desde el ${formatearDiaCorto(ultima)}.`],
       }),
     );
   }
@@ -206,11 +205,9 @@ export function listarSubtareas(eventoId) {
 function errorDeFechaTarde(evento, fecha) {
   const dia = String(evento.fecha_hora).slice(0, 10);
   if (!fecha || fecha <= dia) return null;
-  const [, mes, numero] = dia.split("-").map(Number);
-  const mesCorto = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][mes - 1];
   return Promise.reject(
     new ApiError(400, {
-      fecha_objetivo: [`Elige un día hasta el del evento (${numero} ${mesCorto}).`],
+      fecha_objetivo: [`Elige un día hasta el del evento (${formatearDiaCorto(dia)}).`],
     }),
   );
 }
