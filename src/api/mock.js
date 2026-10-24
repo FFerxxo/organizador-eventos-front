@@ -143,7 +143,15 @@ const contactoDe = (evento) =>
     .filter(Boolean)
     .join(" · ");
 
+// Igual que el backend: un evento nuevo no puede tener una fecha que ya pasó.
 export function crearEvento(datos) {
+  if (new Date(datos.fecha_hora) < new Date()) {
+    return Promise.reject(
+      new ApiError(400, {
+        fecha_hora: ["Esa fecha ya pasó. Revisa el día y la hora."],
+      }),
+    );
+  }
   const evento = { id: siguienteEventoId++, ...datos };
   evento.cliente_contacto = contactoDe(evento);
   eventos = [...eventos, evento];
@@ -153,6 +161,23 @@ export function crearEvento(datos) {
 export function actualizarEvento(id, datos) {
   const actual = buscarEvento(id);
   if (!actual) return noEncontrado();
+
+  // Igual que el backend: el día nuevo no puede quedar antes de la última tarea.
+  const ultima = subtareas
+    .filter((subtarea) => subtarea.evento === actual.id)
+    .map((subtarea) => subtarea.fecha_objetivo)
+    .sort()
+    .at(-1);
+  const diaNuevo = datos.fecha_hora && String(datos.fecha_hora).slice(0, 10);
+  if (diaNuevo && diaNuevo !== String(actual.fecha_hora).slice(0, 10) && ultima > diaNuevo) {
+    const [, mes, dia] = ultima.split("-").map(Number);
+    const mesCorto = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][mes - 1];
+    return Promise.reject(
+      new ApiError(400, {
+        fecha_hora: [`Pasa esas tareas a un día anterior o elige un día desde el ${dia} ${mesCorto}.`],
+      }),
+    );
+  }
 
   const actualizado = { ...actual, ...datos, id: actual.id };
   actualizado.cliente_contacto = contactoDe(actualizado);
@@ -177,8 +202,24 @@ export function listarSubtareas(eventoId) {
   );
 }
 
+// Igual que el backend: la tarea no puede quedar después del día del evento.
+function errorDeFechaTarde(evento, fecha) {
+  const dia = String(evento.fecha_hora).slice(0, 10);
+  if (!fecha || fecha <= dia) return null;
+  const [, mes, numero] = dia.split("-").map(Number);
+  const mesCorto = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][mes - 1];
+  return Promise.reject(
+    new ApiError(400, {
+      fecha_objetivo: [`Elige un día hasta el del evento (${numero} ${mesCorto}).`],
+    }),
+  );
+}
+
 export function crearSubtarea(eventoId, datos) {
-  if (!buscarEvento(eventoId)) return noEncontrado();
+  const evento = buscarEvento(eventoId);
+  if (!evento) return noEncontrado();
+  const tarde = errorDeFechaTarde(evento, datos.fecha_objetivo);
+  if (tarde) return tarde;
 
   const subtarea = {
     id: siguienteSubtareaId++,
@@ -262,6 +303,14 @@ export function actualizarSubtarea(id, cambios) {
     return Promise.reject(
       new ApiError(404, { detail: "Subtarea no encontrada." }),
     );
+  }
+
+  if ("fecha_objetivo" in cambios) {
+    const tarde = errorDeFechaTarde(
+      buscarEvento(actual.evento),
+      cambios.fecha_objetivo,
+    );
+    if (tarde) return tarde;
   }
 
   const nueva = { ...actual, ...cambios, id: actual.id, evento: actual.evento };

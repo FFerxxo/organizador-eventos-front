@@ -99,6 +99,12 @@ export function partesDeFecha(valor) {
   };
 }
 
+// "14 nov": el día del evento dentro de un mensaje.
+export function formatearDiaCorto(valor) {
+  const { dia, mes } = partesDeFecha(valor);
+  return `${dia} ${mes}`;
+}
+
 // Fecha local (AAAA-MM-DD) de un valor con hora, para compararla con otras.
 export function soloFecha(valor) {
   const fecha = new Date(valor);

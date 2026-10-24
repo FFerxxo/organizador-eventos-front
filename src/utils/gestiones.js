@@ -69,9 +69,47 @@ export function mensajeHecha(gestion, avance, nombreEvento) {
   return `Listo, marcaste «${gestion.titulo}» como hecha.${progreso}`;
 }
 
+// Lo que Deshacer devuelve de una gestión antes de posponerla.
+export function valoresAntes(gestion) {
+  return {
+    fecha_objetivo: gestion.fecha_objetivo,
+    estado: gestion.estado,
+    horas_estimadas: Number(gestion.horas_estimadas),
+    nota: gestion.nota ?? "",
+  };
+}
+
+// Lo que viaja junto a la salida que elija la persona cuando Deshacer choca
+// con el límite: todo lo que se devuelve, menos el día, que va a elegir.
+export function pendientesDe(anterior) {
+  const resto = { ...anterior };
+  delete resto.fecha_objetivo;
+  return resto;
+}
+
+// Aviso después de deshacer un posponer: la tarea vuelve a su día.
+export function mensajeVuelta(gestion) {
+  return `Listo, «${gestion.titulo}» volvió al ${formatearFecha(gestion.fecha_objetivo)}.`;
+}
+
 // Aviso después de deshacer: la tarea vuelve al estado que tenía.
 export function mensajeDeshecha(gestion, estadoAnterior) {
   return `Listo, «${gestion.titulo}» vuelve a estar ${etiquetaEstado(estadoAnterior).toLowerCase()}.`;
+}
+
+// Aviso después de Deshacer, sea de un posponer (vuelve a su día) o de Hecha
+// (vuelve al estado de antes).
+export function mensajeAlDeshacer(gestion, anterior) {
+  return anterior.fecha_objetivo
+    ? mensajeVuelta(gestion)
+    : mensajeDeshecha(gestion, anterior.estado);
+}
+
+// Aviso cuando Deshacer choca con el límite: el día de antes ya está lleno.
+export function mensajeNoSePudoDeshacer(gestion, anterior) {
+  return anterior.fecha_objetivo
+    ? `No pudimos devolver "${gestion.titulo}" a su día: ya está lleno.`
+    : `No pudimos reabrir "${gestion.titulo}": ese día ya está lleno.`;
 }
 
 // Aviso después de posponer. "Nota guardada" solo sale si el back devolvió

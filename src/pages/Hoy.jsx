@@ -28,9 +28,11 @@ import {
 } from "../utils/fechas";
 import {
   avanceDe,
-  mensajeDeshecha,
+  mensajeAlDeshacer,
   mensajeHecha,
+  mensajeNoSePudoDeshacer,
   mensajePospuesta,
+  pendientesDe,
   textoSobrecarga,
 } from "../utils/gestiones";
 import { enHoras } from "../utils/horas";
@@ -144,8 +146,9 @@ function Hoy() {
   const [reprogramando, setReprogramando] = useState(null);
   const [mensaje, setMensaje] = useState("");
   const mensajeRef = useRef(null);
-  // Gestión recién marcada como hecha, para poder deshacerlo desde el aviso.
-  const [hecha, setHecha] = useState(null);
+  // Lo último que se puede deshacer desde el aviso (marcar como hecha o
+  // posponer): { gestion, anterior }, con los valores que se devuelven.
+  const [deshacible, setDeshacible] = useState(null);
   // Id de la gestión que se está guardando (Hecha o Deshacer).
   const [guardandoId, setGuardandoId] = useState(null);
   const [errorAccion, setErrorAccion] = useState("");
@@ -214,7 +217,7 @@ function Hoy() {
 
   function limpiarAvisos() {
     setMensaje("");
-    setHecha(null);
+    setDeshacible(null);
     setErrorAccion("");
     setReabrir(null);
   }
@@ -241,7 +244,15 @@ function Hoy() {
     setReprogramando(null);
     setMoviendoAlReabrir(false);
     limpiarAvisos();
-    if (await recargar()) setMensaje(mensajePospuesta(actualizada, enviado));
+    if (await recargar()) {
+      setMensaje(mensajePospuesta(actualizada, enviado));
+      if (enviado.anterior) {
+        setDeshacible({
+          gestion: { ...actualizada, ...enviado.anterior },
+          anterior: enviado.anterior,
+        });
+      }
+    }
   }
 
   async function marcarHecha(gestion) {
@@ -261,7 +272,7 @@ function Hoy() {
     setGuardandoId(null);
     if (!eventos) return;
     const evento = eventos.find((e) => e.id === gestion.evento);
-    setHecha({ gestion, estado: gestion.estado });
+    setDeshacible({ gestion, anterior: { estado: gestion.estado } });
     setMensaje(
       mensajeHecha(
         gestion,
@@ -271,15 +282,16 @@ function Hoy() {
     );
   }
 
-  // Vuelve la gestión al estado que tenía. Como vuelve a sumar sus horas al
+  // Vuelve la gestión a como estaba (estado, o día, horas y nota si venía de
+  // posponer). Como vuelve a sumar sus horas al
   // día, el backend puede responder 409 si ese día ya se llenó: entonces se
   // explica y se ofrece moverla a otro día en lugar de dejarla sin salida.
   async function deshacer() {
-    const { gestion, estado: anterior } = hecha;
+    const { gestion, anterior } = deshacible;
     setGuardandoId(gestion.id);
     setErrorAccion("");
     try {
-      await actualizarSubtarea(gestion.id, { estado: anterior });
+      await actualizarSubtarea(gestion.id, anterior);
     } catch (err) {
       setGuardandoId(null);
       if (
@@ -288,10 +300,10 @@ function Hoy() {
         err.data?.codigo === "sobrecarga_diaria"
       ) {
         setMensaje("");
-        setHecha(null);
+        setDeshacible(null);
         setReabrir({
           gestion,
-          estado: anterior,
+          anterior,
           conflicto: { ...err.data.conflicto, mensaje: err.message },
         });
         return;
@@ -303,9 +315,9 @@ function Hoy() {
     const eventos = await recargar();
     setGuardandoId(null);
     if (!eventos) return;
-    setHecha(null);
+    setDeshacible(null);
     setMensaje(
-      mensajeDeshecha(gestion, anterior),
+      mensajeAlDeshacer(gestion, anterior),
     );
   }
 
@@ -465,14 +477,14 @@ function Hoy() {
               ref={mensajeRef}
             >
               <span>{mensaje}</span>
-              {hecha && (
+              {deshacible && (
                 <button
                   type="button"
                   className="enlace"
-                  disabled={guardandoId === hecha.gestion.id}
+                  disabled={guardandoId === deshacible.gestion.id}
                   onClick={deshacer}
                 >
-                  {guardandoId === hecha.gestion.id ? "Deshaciendo..." : "Deshacer"}
+                  {guardandoId === deshacible.gestion.id ? "Deshaciendo..." : "Deshacer"}
                 </button>
               )}
             </p>
@@ -492,8 +504,8 @@ function Hoy() {
               ref={reabrirRef}
             >
               <span>
-                No pudimos reabrir "{reabrir.gestion.titulo}": ese día ya está
-                lleno. {textoSobrecarga(reabrir.conflicto)}.
+                {mensajeNoSePudoDeshacer(reabrir.gestion, reabrir.anterior)}{" "}
+                {textoSobrecarga(reabrir.conflicto)}.
               </span>
               <button
                 type="button"
@@ -704,7 +716,7 @@ function Hoy() {
           gestion={reabrir.gestion}
           fechaMaxima={diaDelEvento(reabrir.gestion)}
           conflictoInicial={reabrir.conflicto}
-          pendientes={{ estado: reabrir.estado }}
+          pendientes={pendientesDe(reabrir.anterior)}
           onCerrar={() => setMoviendoAlReabrir(false)}
           onGuardado={alPosponer}
         />

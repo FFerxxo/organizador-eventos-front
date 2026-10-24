@@ -643,6 +643,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  container-type: inline-size;
 }
 
 .fila {
@@ -725,6 +726,27 @@
   display: block;
   font-size: 15.5px;
   font-weight: 700;
+}
+
+/* Con poco ancho (ventana de unos 1200 px, con el menú lateral y la columna
+   de la derecha) la fecha y los botones pasan debajo del título. */
+@container (max-width: 600px) {
+  .fila {
+    grid-template-columns: 26px minmax(0, 1fr);
+    padding: 16px;
+  }
+
+  .fila-fin {
+    grid-column: 2;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+  }
+
+  .fila .cuando {
+    text-align: left;
+    white-space: normal;
+  }
 }
 
 .lateral {
@@ -1041,6 +1063,7 @@
   margin: 0;
   padding: 0;
   display: block;
+  container-type: inline-size;
 }
 
 .interior .subtask-list li {
@@ -1131,6 +1154,26 @@
 
 .interior .subtask-list li.editando::before {
   display: none;
+}
+
+/* Con poco ancho (ventana de unos 1024 px) el estado y los botones pasan
+   debajo del título, como en Hoy. */
+@container (max-width: 720px) {
+  .interior .subtask-list li {
+    grid-template-columns: 26px minmax(0, 1fr);
+    padding: 16px;
+  }
+
+  .interior .subtask-acciones {
+    grid-column: 2;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+  }
+
+  .interior .subtask-status {
+    min-width: 0;
+  }
 }
 
 .subtask-list li.raya-pendiente {

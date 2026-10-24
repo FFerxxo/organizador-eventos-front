@@ -43,7 +43,7 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    const nuevosErrores = validarEvento(valores);
+    const nuevosErrores = validarEvento(valores, { esNuevo: !evento });
     setErrores(nuevosErrores);
     setErrorGeneral("");
     if (Object.keys(nuevosErrores).length > 0) return;

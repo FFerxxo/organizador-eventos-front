@@ -7,7 +7,7 @@ import {
   formatearFecha,
   formatearFechaConDia,
 } from "../utils/fechas";
-import { textoSobrecarga } from "../utils/gestiones";
+import { textoSobrecarga, valoresAntes } from "../utils/gestiones";
 import { enHoras } from "../utils/horas";
 import Campo from "./Campo";
 
@@ -58,7 +58,8 @@ function ReprogramarDialog({
     String(Number(gestion.horas_estimadas)),
   );
   const [horas, setHoras] = useState("");
-  const [nota, setNota] = useState("");
+  // Al deshacer con choque, la nota de antes ya viene en `pendientes`.
+  const [nota, setNota] = useState(pendientes.nota ?? "");
   const [conflicto, setConflicto] = useState(conflictoInicial);
   const [errorCampo, setErrorCampo] = useState("");
   const [errorHoras, setErrorHoras] = useState("");
@@ -108,7 +109,11 @@ function ReprogramarDialog({
         ? await posponerSubtarea(gestion.id, { ...datos, nota })
         : await actualizarSubtarea(gestion.id, datos);
       dialogRef.current.close();
-      onGuardado(actualizada, { nota: conNota ? nota.trim() : "" });
+      onGuardado(actualizada, {
+        nota: conNota ? nota.trim() : "",
+        // Con esto el aviso puede ofrecer Deshacer.
+        anterior: soloAdelante ? valoresAntes(gestion) : undefined,
+      });
     } catch (error) {
       setGuardando(false);
 
@@ -355,10 +360,10 @@ function ReprogramarDialog({
             <button
               type="button"
               className="btn-secondary"
-              onClick={cerrar}
+              onClick={conflicto ? () => irA("conflicto") : cerrar}
               disabled={guardando}
             >
-              Cancelar
+              {conflicto ? "Volver" : "Cancelar"}
             </button>
             <button type="submit" disabled={guardando}>
               {guardando ? "Guardando..." : conNota ? "Posponer" : "Reprogramar"}
@@ -394,7 +399,9 @@ function ReprogramarDialog({
             ref={tituloRef}
             tabIndex={-1}
           >
-            Ese día quedaría sobrecargado
+            {conflicto?.fecha
+              ? `El ${formatearFechaConDia(conflicto.fecha).replace(",", "")} quedaría sobrecargado`
+              : "Ese día quedaría sobrecargado"}
           </h3>
 
           <p className="conflicto-cifras" role="alert">
@@ -407,7 +414,7 @@ function ReprogramarDialog({
             <i style={{ left: porcentaje(limite) }} />
           </div>
           <p className="conflicto-etiquetas">
-            <span>Cabe: {enHoras(limite)}</span>
+            <span>Tu límite: {enHoras(limite)}</span>
             <span className="exceso">Te pasas: {enHoras(planificadas - limite)}</span>
           </p>
 
@@ -426,20 +433,23 @@ function ReprogramarDialog({
               <span>Mover a otro día</span>
               <Flecha />
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setHoras("");
-                irA("reducir");
-              }}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="8.5" />
-                <path d="M12 7.5V12l3 2" />
-              </svg>
-              <span>Reducir horas estimadas</span>
-              <Flecha />
-            </button>
+            {/* Si el día ya está lleno, reducir las horas no alcanza. */}
+            {horasLibres > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setHoras("");
+                  irA("reducir");
+                }}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="8.5" />
+                  <path d="M12 7.5V12l3 2" />
+                </svg>
+                <span>Reducir horas estimadas</span>
+                <Flecha />
+              </button>
+            )}
             {posponer && (
               <button
                 type="button"
@@ -457,7 +467,7 @@ function ReprogramarDialog({
                 <span>
                   {guardando
                     ? "Guardando..."
-                    : "Posponer al siguiente día disponible"}
+                    : `Pasar al ${formatearFechaConDia(posponer.fecha).replace(",", "")}`}
                 </span>
                 <Flecha />
               </button>
@@ -480,35 +490,29 @@ function ReprogramarDialog({
           <h3 id="reprogramar-titulo" ref={tituloRef} tabIndex={-1}>
             Reducir horas estimadas
           </h3>
-          {horasLibres === 0 && (
-            <p>Ese día ya está lleno con tus otras tareas. Mejor muévela a otro día.</p>
-          )}
+          <div className="form-grid">
+            {errorGeneral && (
+              <p className="alert-error" role="alert">
+                {errorGeneral}
+              </p>
+            )}
 
-          {horasLibres > 0 && (
-            <div className="form-grid">
-              {errorGeneral && (
-                <p className="alert-error" role="alert">
-                  {errorGeneral}
-                </p>
-              )}
-
-              <Campo
-                type="number"
-                inputMode="decimal"
-                min="0.5"
-                step="0.5"
-                label="Nuevas horas estimadas"
-                name="horas_estimadas"
-                ayuda={`Máximo ${enHoras(horasLibres)} para que quepa ese día.`}
-                value={horas}
-                onChange={(e) => {
-                  setHoras(e.target.value);
-                  setErrorCampo("");
-                }}
-                error={errorCampo}
-              />
-            </div>
-          )}
+            <Campo
+              type="number"
+              inputMode="decimal"
+              min="0.5"
+              step="0.5"
+              label="Nuevas horas estimadas"
+              name="horas_estimadas"
+              ayuda={`Máximo ${enHoras(horasLibres)} para que quepa ese día.`}
+              value={horas}
+              onChange={(e) => {
+                setHoras(e.target.value);
+                setErrorCampo("");
+              }}
+              error={errorCampo}
+            />
+          </div>
 
           <div className="form-actions">
             <button
@@ -519,15 +523,9 @@ function ReprogramarDialog({
             >
               Volver
             </button>
-            {horasLibres > 0 ? (
-              <button type="submit" disabled={guardando}>
-                {guardando ? "Guardando..." : "Guardar horas"}
-              </button>
-            ) : (
-              <button type="button" onClick={() => irA("fecha")}>
-                Mover a otro día
-              </button>
-            )}
+            <button type="submit" disabled={guardando}>
+              {guardando ? "Guardando..." : "Guardar horas"}
+            </button>
           </div>
         </form>
       )}
