@@ -7,6 +7,7 @@ import Layout from "../components/Layout";
 import { LIMITE_DIARIO } from "../constants";
 import { numeroDeHoras } from "../utils/horas";
 import { validarLimiteDiario } from "../utils/validaciones";
+import { useTitulo } from "../utils/useTitulo";
 
 // Valor para el campo de número: "6.00" -> "6", "4.50" -> "4.5"
 const sinCeros = (horas) => String(Number(horas));
@@ -15,6 +16,7 @@ const enHoras = (horas) =>
   `${numeroDeHoras(horas)} ${Number(horas) === 1 ? "hora" : "horas"}`;
 
 function Configuracion() {
+  useTitulo("Configuración");
   const [limite, setLimite] = useState(null);
   const [valor, setValor] = useState("");
   const [errorCarga, setErrorCarga] = useState("");

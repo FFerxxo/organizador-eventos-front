@@ -35,6 +35,7 @@ import {
   mensajeReprogramada,
 } from "../utils/gestiones";
 import { enHoras } from "../utils/horas";
+import { useTitulo } from "../utils/useTitulo";
 
 // Clase de la rayita de color del borde izquierdo de cada tarea.
 function claseRaya(subtarea, hoy) {
@@ -57,6 +58,7 @@ function EventoDetalle() {
     subtareas: [],
     error: "",
   });
+  useTitulo(datos.evento?.nombre ?? "Evento");
   const [mensaje, setMensaje] = useState(state?.mensaje ?? "");
   const [editando, setEditando] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
@@ -101,6 +103,17 @@ function EventoDetalle() {
   useEffect(() => {
     if (state?.mensaje) navigate(pathname, { replace: true, state: null });
   }, [state, pathname, navigate]);
+
+  // Al llegar desde "Crear evento", el foco pasa al título del evento nuevo
+  // en cuanto carga, para que quien usa teclado o lector sepa dónde quedó.
+  const recienCreado = useRef(Boolean(state?.mensaje));
+  const tituloRef = useRef(null);
+  useEffect(() => {
+    if (datos.evento && recienCreado.current) {
+      recienCreado.current = false;
+      tituloRef.current?.focus();
+    }
+  }, [datos.evento]);
 
   useEffect(() => {
     let activo = true;
@@ -418,7 +431,9 @@ function EventoDetalle() {
 
       <div className="encabezado-fila">
         <div>
-          <h1>{evento.nombre}</h1>
+          <h1 ref={tituloRef} tabIndex={-1}>
+            {evento.nombre}
+          </h1>
           <p className="sub">{formatearFechaHora(evento.fecha_hora)}</p>
         </div>
 

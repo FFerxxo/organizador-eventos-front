@@ -36,6 +36,7 @@ import {
   textoSobrecarga,
 } from "../utils/gestiones";
 import { enHoras } from "../utils/horas";
+import { useTitulo } from "../utils/useTitulo";
 
 // Los grupos se muestran en este orden: primero lo vencido, después lo de
 // hoy y al final lo próximo. El orden de las gestiones dentro de cada grupo
@@ -131,6 +132,7 @@ function Cargando() {
 }
 
 function Hoy() {
+  useTitulo("Hoy");
   // Los filtros viven en la dirección (?evento=3&estado=en curso) para que
   // se conserven al recargar o al volver atrás.
   const [parametros, setParametros] = useSearchParams();

@@ -4,6 +4,7 @@ import { listarEventos } from "../api/eventos";
 import abejorroEventos from "../assets/brand/abejorro-eventos.svg";
 import Layout from "../components/Layout";
 import { partesDeFecha, soloFecha } from "../utils/fechas";
+import { useTitulo } from "../utils/useTitulo";
 
 const hora = (valor) =>
   new Date(valor).toLocaleTimeString("es", {
@@ -12,6 +13,7 @@ const hora = (valor) =>
   });
 
 function Eventos() {
+  useTitulo("Eventos");
   const { state } = useLocation();
   const [eventos, setEventos] = useState(null);
   const [error, setError] = useState("");

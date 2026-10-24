@@ -2,6 +2,7 @@ import { useState } from "react";
 import { erroresDeApi } from "../api/client";
 import { TIPOS_EVENTO } from "../constants";
 import { aInputFechaHora } from "../utils/fechas";
+import { AVISO_REVISAR, enfocarPrimerError } from "../utils/formularios";
 import { validarEvento } from "../utils/validaciones";
 import Campo from "./Campo";
 
@@ -43,10 +44,15 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
   async function handleSubmit(e) {
     e.preventDefault();
 
+    const formulario = e.currentTarget;
     const nuevosErrores = validarEvento(valores, { esNuevo: !evento });
     setErrores(nuevosErrores);
     setErrorGeneral("");
-    if (Object.keys(nuevosErrores).length > 0) return;
+    if (Object.keys(nuevosErrores).length > 0) {
+      setErrorGeneral(AVISO_REVISAR);
+      enfocarPrimerError(formulario);
+      return;
+    }
 
     const datos = Object.fromEntries(
       CAMPOS.map((campo) => [campo, valores[campo].trim()]),
@@ -60,6 +66,7 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
       setErrores(campos);
       setErrorGeneral(general);
       setEnviando(false);
+      enfocarPrimerError(formulario);
     }
   }
 
@@ -72,6 +79,7 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
       )}
 
       <Campo
+        obligatorio
         label="Nombre del evento"
         name="nombre"
         placeholder="Ejemplo: Boda de Ana y Luis"
@@ -83,6 +91,7 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
       <div className="form-row">
         <Campo
           as="select"
+          obligatorio
           label="Tipo de evento"
           name="tipo"
           value={valores.tipo}
@@ -99,6 +108,7 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
 
         <Campo
           type="datetime-local"
+          obligatorio
           label="Fecha y hora del evento"
           name="fecha_hora"
           value={valores.fecha_hora}
@@ -108,6 +118,7 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
       </div>
 
       <Campo
+        obligatorio
         label="Lugar"
         name="lugar"
         placeholder="Ejemplo: Hacienda El Roble"
@@ -117,6 +128,7 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
       />
 
       <Campo
+        obligatorio
         label="Nombre del cliente"
         name="cliente_nombre"
         placeholder="Ejemplo: Ana Gómez"

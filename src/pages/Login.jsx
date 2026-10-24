@@ -4,8 +4,10 @@ import Campo from "../components/Campo";
 import PortadaAcceso from "../components/PortadaAcceso";
 import { erroresDeApi } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { useTitulo } from "../utils/useTitulo";
 
 function Login() {
+  useTitulo("Iniciar sesión");
   const { login, isAuthenticated, olvidarCierreVoluntario } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

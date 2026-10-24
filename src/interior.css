@@ -41,13 +41,32 @@
   color: inherit;
 }
 
+/* Enlace para saltar el menú con teclado: solo se ve cuando recibe el foco. */
+.interior .saltar {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+
+.interior .saltar:focus-visible {
+  transform: none;
+}
+
 .interior :focus-visible,
 .interior button:focus,
 .interior input:focus,
 .interior select:focus,
 .interior textarea:focus,
 .interior a:focus-visible {
-  outline: 3px solid rgba(194, 65, 12, 0.5);
+  outline: 3px solid var(--cta);
   outline-offset: 2px;
 }
 
@@ -549,6 +568,7 @@
 
 .interior .hoy-filtros select {
   padding: 0 12px;
+  border-color: var(--faint);
   background: var(--white);
   color: var(--text);
   font-weight: 400;
@@ -936,7 +956,7 @@
 .interior .form-grid textarea {
   min-width: 0;
   width: 100%;
-  border: 1px solid var(--rule2);
+  border: 1px solid var(--faint);
   border-radius: 10px;
   padding: 12px 14px;
   background: var(--white);
@@ -959,6 +979,12 @@
   font-size: 14px;
   font-weight: 600;
   color: var(--late);
+}
+
+.interior .campo-obligatorio {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted);
 }
 
 .interior .field-help {
@@ -1694,7 +1720,7 @@
   .barra-lateral nav a.active,
   .barra-lateral-pie > a.active {
     background: #fbe9df;
-    color: #b84a1e;
+    color: var(--ctad);
   }
 
   .barra-lateral nav svg,
@@ -1938,9 +1964,18 @@
 
   .pestanas,
   .barra .btn-crear,
-  .usuario-nombre,
   .usuario-flecha {
     display: none;
+  }
+
+  /* El nombre sigue siendo el nombre del botón, aunque no se vea. */
+  .usuario-nombre {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   .contenido {
