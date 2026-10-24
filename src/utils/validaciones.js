@@ -40,7 +40,7 @@ export function validarEvento(valores, { esNuevo = false } = {}) {
   }
   if (estaVacio(valores.fecha_hora)) {
     errores.fecha_hora = "Indica la fecha y hora del evento.";
-  } else if (esNuevo && valores.fecha_hora < aInputFechaHora(new Date())) {
+  } else if (esNuevo && valores.fecha_hora <= aInputFechaHora(new Date())) {
     errores.fecha_hora = "Esa fecha ya pasó. Revisa el día y la hora.";
   }
   if (estaVacio(valores.lugar)) {
