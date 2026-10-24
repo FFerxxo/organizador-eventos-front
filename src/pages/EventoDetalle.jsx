@@ -618,6 +618,7 @@ function EventoDetalle() {
                   <h3>Editar tarea</h3>
                   <SubtareaForm
                     subtarea={subtarea}
+                    fechaMaxima={soloFecha(evento.fecha_hora)}
                     onSubmit={(cambios) => guardarSubtarea(subtarea, cambios)}
                     onCancelar={() => setEditandoSubtarea(null)}
                   />
@@ -715,7 +716,10 @@ function EventoDetalle() {
 
       <section className="panel panel-relleno">
         <h2>Agregar tarea</h2>
-        <SubtareaForm onSubmit={agregarSubtarea} />
+        <SubtareaForm
+          fechaMaxima={soloFecha(evento.fecha_hora)}
+          onSubmit={agregarSubtarea}
+        />
       </section>
 
       {reprogramando && (

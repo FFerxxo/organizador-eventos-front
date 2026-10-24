@@ -1,4 +1,5 @@
 import { LIMITE_DIARIO } from "../constants";
+import { aInputFechaHora, formatearDiaCorto } from "./fechas";
 
 const estaVacio = (valor) => String(valor ?? "").trim() === "";
 
@@ -10,7 +11,9 @@ function esTelefono(texto) {
   return /^[\d\s+\-()]+$/.test(texto) && digitos >= 7 && digitos <= 15;
 }
 
-export function validarEvento(valores) {
+// `esNuevo`: solo al crear se revisa que la fecha no haya pasado, para poder
+// seguir editando eventos que ya fueron.
+export function validarEvento(valores, { esNuevo = false } = {}) {
   const errores = {};
 
   if (estaVacio(valores.nombre)) {
@@ -37,6 +40,8 @@ export function validarEvento(valores) {
   }
   if (estaVacio(valores.fecha_hora)) {
     errores.fecha_hora = "Indica la fecha y hora del evento.";
+  } else if (esNuevo && valores.fecha_hora < aInputFechaHora(new Date())) {
+    errores.fecha_hora = "Esa fecha ya pasó. Revisa el día y la hora.";
   }
   if (estaVacio(valores.lugar)) {
     errores.lugar = "El lugar del evento es obligatorio.";
@@ -45,7 +50,8 @@ export function validarEvento(valores) {
   return errores;
 }
 
-export function validarSubtarea(valores) {
+// `fechaMaxima`: el día del evento; la tarea no puede quedar después.
+export function validarSubtarea(valores, fechaMaxima = "") {
   const errores = {};
 
   if (estaVacio(valores.titulo)) {
@@ -53,6 +59,8 @@ export function validarSubtarea(valores) {
   }
   if (estaVacio(valores.fecha_objetivo)) {
     errores.fecha_objetivo = "Indica la fecha objetivo.";
+  } else if (fechaMaxima && valores.fecha_objetivo > fechaMaxima) {
+    errores.fecha_objetivo = `Elige un día hasta el del evento (${formatearDiaCorto(fechaMaxima)}).`;
   }
   if (estaVacio(valores.horas_estimadas)) {
     errores.horas_estimadas = "Indica las horas estimadas.";

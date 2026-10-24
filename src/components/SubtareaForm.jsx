@@ -31,7 +31,7 @@ function valoresDe(subtarea) {
 }
 
 // Sin `subtarea` es el formulario para agregar; con ella, el de editar.
-function SubtareaForm({ subtarea, onSubmit, onCancelar }) {
+function SubtareaForm({ subtarea, fechaMaxima = "", onSubmit, onCancelar }) {
   const editando = Boolean(subtarea);
   const [valores, setValores] = useState(() =>
     editando ? valoresDe(subtarea) : VALORES_INICIALES,
@@ -49,7 +49,7 @@ function SubtareaForm({ subtarea, onSubmit, onCancelar }) {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    const nuevosErrores = validarSubtarea(valores);
+    const nuevosErrores = validarSubtarea(valores, fechaMaxima);
     setErrores(nuevosErrores);
     setErrorGeneral("");
     if (Object.keys(nuevosErrores).length > 0) return;
@@ -108,6 +108,7 @@ function SubtareaForm({ subtarea, onSubmit, onCancelar }) {
           type="date"
           label="Fecha objetivo"
           name="fecha_objetivo"
+          max={fechaMaxima || undefined}
           value={valores.fecha_objetivo}
           onChange={handleChange}
           error={errores.fecha_objetivo}
