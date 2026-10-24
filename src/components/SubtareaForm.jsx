@@ -51,7 +51,11 @@ function SubtareaForm({ subtarea, fechaMaxima = "", onSubmit, onCancelar }) {
     e.preventDefault();
 
     const formulario = e.currentTarget;
-    const nuevosErrores = validarSubtarea(valores, fechaMaxima);
+    const nuevosErrores = validarSubtarea(
+      valores,
+      fechaMaxima,
+      subtarea?.fecha_objetivo,
+    );
     setErrores(nuevosErrores);
     setErrorGeneral("");
     if (Object.keys(nuevosErrores).length > 0) {

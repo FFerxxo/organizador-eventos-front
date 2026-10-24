@@ -305,7 +305,10 @@ export function actualizarSubtarea(id, cambios) {
     );
   }
 
-  if ("fecha_objetivo" in cambios) {
+  if (
+    "fecha_objetivo" in cambios &&
+    cambios.fecha_objetivo !== actual.fecha_objetivo
+  ) {
     const tarde = errorDeFechaTarde(
       buscarEvento(actual.evento),
       cambios.fecha_objetivo,
