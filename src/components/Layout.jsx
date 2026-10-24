@@ -36,6 +36,28 @@ const ICONOS = {
   ),
 };
 
+// Enlace del menú que también se marca como activo en las pantallas que son
+// "parte" de esa sección: Hoy cuando se entra por "/" y Eventos dentro del
+// detalle de un evento. NavLink solo mira su propia ruta.
+function EnlaceMenu({ to, tambien = [], prefijos = [], children }) {
+  const { pathname } = useLocation();
+  const activo =
+    pathname === to ||
+    pathname.startsWith(`${to}/`) ||
+    tambien.includes(pathname) ||
+    prefijos.some((prefijo) => pathname.startsWith(prefijo));
+
+  return (
+    <Link
+      to={to}
+      className={activo ? "active" : undefined}
+      aria-current={activo ? "page" : undefined}
+    >
+      {children}
+    </Link>
+  );
+}
+
 function Icono({ nombre }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -176,14 +198,14 @@ function Layout({ children, ocultarCrear = false }) {
         {botonCrear}
 
         <nav aria-label="Principal">
-          <NavLink to="/hoy">
+          <EnlaceMenu to="/hoy" tambien={["/"]}>
             <Icono nombre="hoy" />
             Hoy
-          </NavLink>
-          <NavLink to="/eventos">
+          </EnlaceMenu>
+          <EnlaceMenu to="/eventos" prefijos={["/evento/"]}>
             <Icono nombre="eventos" />
             Eventos
-          </NavLink>
+          </EnlaceMenu>
           <NavLink to="/progreso">
             <Icono nombre="progreso" />
             Progreso
@@ -204,8 +226,8 @@ function Layout({ children, ocultarCrear = false }) {
           {marca}
 
           <nav className="pestanas" aria-label="Principal">
-            <NavLink to="/hoy">Hoy</NavLink>
-            <NavLink to="/eventos">Eventos</NavLink>
+            <EnlaceMenu to="/hoy" tambien={["/"]}>Hoy</EnlaceMenu>
+            <EnlaceMenu to="/eventos" prefijos={["/evento/"]}>Eventos</EnlaceMenu>
             <NavLink to="/progreso">Progreso</NavLink>
           </nav>
 
@@ -219,14 +241,14 @@ function Layout({ children, ocultarCrear = false }) {
       <main className="contenido">{children}</main>
 
       <nav className="barra-inferior" aria-label="Principal">
-        <NavLink to="/hoy">
+        <EnlaceMenu to="/hoy" tambien={["/"]}>
           <Icono nombre="hoy" />
           Hoy
-        </NavLink>
-        <NavLink to="/eventos">
+        </EnlaceMenu>
+        <EnlaceMenu to="/eventos" prefijos={["/evento/"]}>
           <Icono nombre="eventos" />
           Eventos
-        </NavLink>
+        </EnlaceMenu>
         <NavLink to="/crear">
           <Icono nombre="crear" />
           Crear
