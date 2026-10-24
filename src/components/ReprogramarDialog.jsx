@@ -462,7 +462,7 @@ function ReprogramarDialog({
                 <span>
                   {guardando
                     ? "Guardando..."
-                    : "Posponer al siguiente día disponible"}
+                    : `Pasar al ${formatearFechaConDia(posponer.fecha).replace(",", "")}`}
                 </span>
                 <Flecha />
               </button>
