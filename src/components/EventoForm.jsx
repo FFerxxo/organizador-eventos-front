@@ -2,6 +2,7 @@ import { useState } from "react";
 import { erroresDeApi } from "../api/client";
 import { TIPOS_EVENTO } from "../constants";
 import { aInputFechaHora } from "../utils/fechas";
+import { AVISO_REVISAR, enfocarPrimerError } from "../utils/formularios";
 import { validarEvento } from "../utils/validaciones";
 import Campo from "./Campo";
 
@@ -43,10 +44,15 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
   async function handleSubmit(e) {
     e.preventDefault();
 
+    const formulario = e.currentTarget;
     const nuevosErrores = validarEvento(valores, { esNuevo: !evento });
     setErrores(nuevosErrores);
     setErrorGeneral("");
-    if (Object.keys(nuevosErrores).length > 0) return;
+    if (Object.keys(nuevosErrores).length > 0) {
+      setErrorGeneral(AVISO_REVISAR);
+      enfocarPrimerError(formulario);
+      return;
+    }
 
     const datos = Object.fromEntries(
       CAMPOS.map((campo) => [campo, valores[campo].trim()]),
@@ -60,6 +66,7 @@ function EventoForm({ evento, textoBoton, onSubmit, onCancelar }) {
       setErrores(campos);
       setErrorGeneral(general);
       setEnviando(false);
+      enfocarPrimerError(formulario);
     }
   }
 

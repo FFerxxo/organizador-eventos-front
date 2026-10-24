@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { erroresDeApi } from "../api/client";
 import { ESTADOS_SUBTAREA, normalizarEstado } from "../constants";
+import { AVISO_REVISAR, enfocarPrimerError } from "../utils/formularios";
 import { validarSubtarea } from "../utils/validaciones";
 import Campo from "./Campo";
 
@@ -49,10 +50,15 @@ function SubtareaForm({ subtarea, fechaMaxima = "", onSubmit, onCancelar }) {
   async function handleSubmit(e) {
     e.preventDefault();
 
+    const formulario = e.currentTarget;
     const nuevosErrores = validarSubtarea(valores, fechaMaxima);
     setErrores(nuevosErrores);
     setErrorGeneral("");
-    if (Object.keys(nuevosErrores).length > 0) return;
+    if (Object.keys(nuevosErrores).length > 0) {
+      setErrorGeneral(AVISO_REVISAR);
+      enfocarPrimerError(formulario);
+      return;
+    }
 
     setEnviando(true);
     try {
@@ -70,6 +76,7 @@ function SubtareaForm({ subtarea, fechaMaxima = "", onSubmit, onCancelar }) {
       const { campos, general } = erroresDeApi(error, CAMPOS);
       setErrores(campos);
       setErrorGeneral(general);
+      enfocarPrimerError(formulario);
     } finally {
       setEnviando(false);
     }
