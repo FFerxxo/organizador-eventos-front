@@ -47,7 +47,7 @@
 .interior select:focus,
 .interior textarea:focus,
 .interior a:focus-visible {
-  outline: 3px solid rgba(194, 65, 12, 0.5);
+  outline: 3px solid #c2410c;
   outline-offset: 2px;
 }
 

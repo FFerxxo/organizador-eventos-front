@@ -39,7 +39,7 @@ input:focus,
 select:focus,
 textarea:focus,
 a:focus {
-  outline: 3px solid rgba(124, 58, 237, 0.35);
+  outline: 3px solid #c2410c;
   outline-offset: 3px;
 }
 
