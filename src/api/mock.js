@@ -174,7 +174,7 @@ export function actualizarEvento(id, datos) {
     const mesCorto = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"][mes - 1];
     return Promise.reject(
       new ApiError(400, {
-        fecha_hora: [`Tienes tareas hasta el ${dia} ${mesCorto}. Muévelas antes o elige un día posterior.`],
+        fecha_hora: [`Pasa esas tareas a un día anterior o elige un día desde el ${dia} ${mesCorto}.`],
       }),
     );
   }
