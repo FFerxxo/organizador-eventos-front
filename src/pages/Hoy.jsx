@@ -28,10 +28,10 @@ import {
 } from "../utils/fechas";
 import {
   avanceDe,
-  mensajeDeshecha,
+  mensajeAlDeshacer,
   mensajeHecha,
+  mensajeNoSePudoDeshacer,
   mensajePospuesta,
-  mensajeVuelta,
   pendientesDe,
   textoSobrecarga,
 } from "../utils/gestiones";
@@ -317,9 +317,7 @@ function Hoy() {
     if (!eventos) return;
     setDeshacible(null);
     setMensaje(
-      anterior.fecha_objetivo
-        ? mensajeVuelta(gestion)
-        : mensajeDeshecha(gestion, anterior.estado),
+      mensajeAlDeshacer(gestion, anterior),
     );
   }
 
@@ -506,9 +504,7 @@ function Hoy() {
               ref={reabrirRef}
             >
               <span>
-                {reabrir.anterior.fecha_objetivo
-                  ? `No pudimos devolver "${reabrir.gestion.titulo}" a su día: ya está lleno.`
-                  : `No pudimos reabrir "${reabrir.gestion.titulo}": ese día ya está lleno.`}{" "}
+                {mensajeNoSePudoDeshacer(reabrir.gestion, reabrir.anterior)}{" "}
                 {textoSobrecarga(reabrir.conflicto)}.
               </span>
               <button

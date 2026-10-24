@@ -97,6 +97,21 @@ export function mensajeDeshecha(gestion, estadoAnterior) {
   return `Listo, «${gestion.titulo}» vuelve a estar ${etiquetaEstado(estadoAnterior).toLowerCase()}.`;
 }
 
+// Aviso después de Deshacer, sea de un posponer (vuelve a su día) o de Hecha
+// (vuelve al estado de antes).
+export function mensajeAlDeshacer(gestion, anterior) {
+  return anterior.fecha_objetivo
+    ? mensajeVuelta(gestion)
+    : mensajeDeshecha(gestion, anterior.estado);
+}
+
+// Aviso cuando Deshacer choca con el límite: el día de antes ya está lleno.
+export function mensajeNoSePudoDeshacer(gestion, anterior) {
+  return anterior.fecha_objetivo
+    ? `No pudimos devolver "${gestion.titulo}" a su día: ya está lleno.`
+    : `No pudimos reabrir "${gestion.titulo}": ese día ya está lleno.`;
+}
+
 // Aviso después de posponer. "Nota guardada" solo sale si el back devolvió
 // la nota que se mandó: si todavía no la guarda, no se promete nada. Si la
 // tarea se reabrió al moverla, se avisa como una reprogramación normal.

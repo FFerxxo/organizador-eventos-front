@@ -26,10 +26,10 @@ import {
 } from "../utils/fechas";
 import {
   avanceDe,
-  mensajeDeshecha,
+  mensajeAlDeshacer,
   mensajeHecha,
+  mensajeNoSePudoDeshacer,
   mensajePospuesta,
-  mensajeVuelta,
   pendientesDe,
   textoSobrecarga,
   mensajeReprogramada,
@@ -345,9 +345,7 @@ function EventoDetalle() {
       reemplazarSubtarea(actualizada);
       setDeshacible(null);
       setMensajeSubtareas(
-        anterior.fecha_objetivo
-          ? mensajeVuelta(gestion)
-          : mensajeDeshecha(gestion, anterior.estado),
+        mensajeAlDeshacer(gestion, anterior),
       );
     } catch (error) {
       if (
@@ -556,9 +554,7 @@ function EventoDetalle() {
             ref={avisoTareasRef}
           >
             <span>
-              {reabrir.anterior.fecha_objetivo
-                ? `No pudimos devolver "${reabrir.gestion.titulo}" a su día: ya está lleno.`
-                : `No pudimos reabrir "${reabrir.gestion.titulo}": ese día ya está lleno.`}{" "}
+              {mensajeNoSePudoDeshacer(reabrir.gestion, reabrir.anterior)}{" "}
               {textoSobrecarga(reabrir.conflicto)}.
             </span>
             <button
