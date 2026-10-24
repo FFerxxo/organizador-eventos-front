@@ -80,7 +80,6 @@ function MenuUsuario({ nombre, email, onSalir }) {
         ref={botonRef}
         aria-haspopup="true"
         aria-expanded={abierto}
-        aria-label={`Menú de ${nombre}`}
         onClick={() => setAbierto((estaba) => !estaba)}
       >
         <span className="usuario-inicial" aria-hidden="true">

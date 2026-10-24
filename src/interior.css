@@ -1938,9 +1938,18 @@
 
   .pestanas,
   .barra .btn-crear,
-  .usuario-nombre,
   .usuario-flecha {
     display: none;
+  }
+
+  /* El nombre sigue siendo el nombre del botón, aunque no se vea. */
+  .usuario-nombre {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   .contenido {
