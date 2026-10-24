@@ -41,6 +41,25 @@
   color: inherit;
 }
 
+/* Enlace para saltar el menú con teclado: solo se ve cuando recibe el foco. */
+.interior .saltar {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+
+.interior .saltar:focus-visible {
+  transform: none;
+}
+
 .interior :focus-visible,
 .interior button:focus,
 .interior input:focus,

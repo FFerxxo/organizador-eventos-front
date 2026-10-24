@@ -193,6 +193,16 @@ function Layout({ children, ocultarCrear = false }) {
 
   return (
     <div className="interior">
+      <a
+        className="saltar"
+        href="#contenido"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById("contenido")?.focus();
+        }}
+      >
+        Saltar al contenido
+      </a>
       <aside className="barra-lateral">
         {marca}
         {botonCrear}
@@ -238,7 +248,9 @@ function Layout({ children, ocultarCrear = false }) {
         </div>
       </header>
 
-      <main className="contenido">{children}</main>
+      <main className="contenido" id="contenido" tabIndex={-1}>
+        {children}
+      </main>
 
       <nav className="barra-inferior" aria-label="Principal">
         <EnlaceMenu to="/hoy" tambien={["/"]}>
