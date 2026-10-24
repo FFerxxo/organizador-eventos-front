@@ -1694,7 +1694,7 @@
   .barra-lateral nav a.active,
   .barra-lateral-pie > a.active {
     background: #fbe9df;
-    color: #b84a1e;
+    color: var(--ctad);
   }
 
   .barra-lateral nav svg,
