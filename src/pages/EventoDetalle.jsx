@@ -29,6 +29,8 @@ import {
   mensajeDeshecha,
   mensajeHecha,
   mensajePospuesta,
+  mensajeVuelta,
+  pendientesDe,
   textoSobrecarga,
   mensajeReprogramada,
 } from "../utils/gestiones";
@@ -78,9 +80,10 @@ function EventoDetalle() {
   const [confirmandoVarias, setConfirmandoVarias] = useState(false);
   const [eliminandoVarias, setEliminandoVarias] = useState(false);
   const [errorSubtareas, setErrorSubtareas] = useState("");
-  // Tarea recién marcada como hecha: { gestion, estado, mensaje }. "Deshacer"
-  // solo sale mientras el aviso que se ve es el de esa tarea.
-  const [hecha, setHecha] = useState(null);
+  // Lo último que se puede deshacer (marcar como hecha o posponer):
+  // { gestion, anterior, mensaje }, con los valores que se devuelven.
+  // "Deshacer" solo sale mientras el aviso que se ve es el de esa tarea.
+  const [deshacible, setDeshacible] = useState(null);
   // Id de la tarea que se está guardando (Hecha o Deshacer).
   const [guardandoId, setGuardandoId] = useState(null);
   // Deshacer chocó con el límite del día: { gestion, estado, conflicto }.
@@ -90,8 +93,8 @@ function EventoDetalle() {
 
   // El botón "Hecha" desaparece al marcarla: el foco pasa al aviso.
   useEffect(() => {
-    if (hecha || reabrir) avisoTareasRef.current?.focus();
-  }, [hecha, reabrir]);
+    if (deshacible || reabrir) avisoTareasRef.current?.focus();
+  }, [deshacible, reabrir]);
 
   // El aviso que llega al crear el evento se muestra una sola vez: se quita
   // del historial para que no vuelva a salir al recargar la página.
@@ -289,11 +292,17 @@ function EventoDetalle() {
     setReabrir(null);
     reemplazarSubtarea(actualizada);
     setMensaje("");
-    setMensajeSubtareas(
-      enviado
-        ? mensajePospuesta(actualizada, enviado)
-        : mensajeReprogramada(actualizada),
-    );
+    const texto = enviado
+      ? mensajePospuesta(actualizada, enviado)
+      : mensajeReprogramada(actualizada);
+    setMensajeSubtareas(texto);
+    if (enviado?.anterior) {
+      setDeshacible({
+        gestion: { ...actualizada, ...enviado.anterior },
+        anterior: enviado.anterior,
+        mensaje: texto,
+      });
+    }
   }
 
   // La barra se calcula con la lista local, así que cambia en el mismo
@@ -311,7 +320,11 @@ function EventoDetalle() {
       );
       const texto = mensajeHecha(subtarea, avance, evento.nombre);
       setMensajeSubtareas(texto);
-      setHecha({ gestion: subtarea, estado: subtarea.estado, mensaje: texto });
+      setDeshacible({
+        gestion: subtarea,
+        anterior: { estado: subtarea.estado },
+        mensaje: texto,
+      });
     } catch {
       setErrorSubtareas(
         `No pudimos marcar "${subtarea.titulo}" como hecha. Inténtalo de nuevo.`,
@@ -324,17 +337,17 @@ function EventoDetalle() {
   // Igual que en /hoy: si al reabrirla el día se pasa del límite, se explica
   // y se ofrece moverla a otro día.
   async function deshacer() {
-    const { gestion, estado: anterior } = hecha;
+    const { gestion, anterior } = deshacible;
     setGuardandoId(gestion.id);
     setErrorSubtareas("");
     try {
-      const actualizada = await actualizarSubtarea(gestion.id, {
-        estado: anterior,
-      });
+      const actualizada = await actualizarSubtarea(gestion.id, anterior);
       reemplazarSubtarea(actualizada);
-      setHecha(null);
+      setDeshacible(null);
       setMensajeSubtareas(
-        mensajeDeshecha(gestion, anterior),
+        anterior.fecha_objetivo
+          ? mensajeVuelta(gestion)
+          : mensajeDeshecha(gestion, anterior.estado),
       );
     } catch (error) {
       if (
@@ -342,11 +355,11 @@ function EventoDetalle() {
         error.status === 409 &&
         error.data?.codigo === "sobrecarga_diaria"
       ) {
-        setHecha(null);
+        setDeshacible(null);
         setMensajeSubtareas("");
         setReabrir({
           gestion,
-          estado: anterior,
+          anterior,
           conflicto: { ...error.data.conflicto, mensaje: error.message },
         });
       } else {
@@ -520,14 +533,14 @@ function EventoDetalle() {
             ref={avisoTareasRef}
           >
             <span>{mensajeSubtareas}</span>
-            {hecha?.mensaje === mensajeSubtareas && (
+            {deshacible?.mensaje === mensajeSubtareas && (
               <button
                 type="button"
                 className="enlace"
-                disabled={guardandoId === hecha.gestion.id}
+                disabled={guardandoId === deshacible.gestion.id}
                 onClick={deshacer}
               >
-                {guardandoId === hecha.gestion.id
+                {guardandoId === deshacible.gestion.id
                   ? "Deshaciendo..."
                   : "Deshacer"}
               </button>
@@ -543,8 +556,10 @@ function EventoDetalle() {
             ref={avisoTareasRef}
           >
             <span>
-              No pudimos reabrir "{reabrir.gestion.titulo}": ese día ya está
-              lleno. {textoSobrecarga(reabrir.conflicto)}.
+              {reabrir.anterior.fecha_objetivo
+                ? `No pudimos devolver "${reabrir.gestion.titulo}" a su día: ya está lleno.`
+                : `No pudimos reabrir "${reabrir.gestion.titulo}": ese día ya está lleno.`}{" "}
+              {textoSobrecarga(reabrir.conflicto)}.
             </span>
             <button
               type="button"
@@ -738,7 +753,7 @@ function EventoDetalle() {
           gestion={reabrir.gestion}
           fechaMaxima={soloFecha(evento.fecha_hora)}
           conflictoInicial={reabrir.conflicto}
-          pendientes={{ estado: reabrir.estado }}
+          pendientes={pendientesDe(reabrir.anterior)}
           onCerrar={() => setMoviendoAlReabrir(false)}
           onGuardado={alReprogramar}
         />

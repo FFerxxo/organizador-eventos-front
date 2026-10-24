@@ -69,6 +69,29 @@ export function mensajeHecha(gestion, avance, nombreEvento) {
   return `Listo, marcaste «${gestion.titulo}» como hecha.${progreso}`;
 }
 
+// Lo que Deshacer devuelve de una gestión antes de posponerla.
+export function valoresAntes(gestion) {
+  return {
+    fecha_objetivo: gestion.fecha_objetivo,
+    estado: gestion.estado,
+    horas_estimadas: Number(gestion.horas_estimadas),
+    nota: gestion.nota ?? "",
+  };
+}
+
+// Lo que viaja junto a la salida que elija la persona cuando Deshacer choca
+// con el límite: todo lo que se devuelve, menos el día, que va a elegir.
+export function pendientesDe(anterior) {
+  const resto = { ...anterior };
+  delete resto.fecha_objetivo;
+  return resto;
+}
+
+// Aviso después de deshacer un posponer: la tarea vuelve a su día.
+export function mensajeVuelta(gestion) {
+  return `Listo, «${gestion.titulo}» volvió al ${formatearFecha(gestion.fecha_objetivo)}.`;
+}
+
 // Aviso después de deshacer: la tarea vuelve al estado que tenía.
 export function mensajeDeshecha(gestion, estadoAnterior) {
   return `Listo, «${gestion.titulo}» vuelve a estar ${etiquetaEstado(estadoAnterior).toLowerCase()}.`;

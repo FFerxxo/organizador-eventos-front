@@ -7,7 +7,7 @@ import {
   formatearFecha,
   formatearFechaConDia,
 } from "../utils/fechas";
-import { textoSobrecarga } from "../utils/gestiones";
+import { textoSobrecarga, valoresAntes } from "../utils/gestiones";
 import { enHoras } from "../utils/horas";
 import Campo from "./Campo";
 
@@ -108,7 +108,11 @@ function ReprogramarDialog({
         ? await posponerSubtarea(gestion.id, { ...datos, nota })
         : await actualizarSubtarea(gestion.id, datos);
       dialogRef.current.close();
-      onGuardado(actualizada, { nota: conNota ? nota.trim() : "" });
+      onGuardado(actualizada, {
+        nota: conNota ? nota.trim() : "",
+        // Con esto el aviso puede ofrecer Deshacer.
+        anterior: soloAdelante ? valoresAntes(gestion) : undefined,
+      });
     } catch (error) {
       setGuardando(false);
 
