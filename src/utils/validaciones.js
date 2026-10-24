@@ -51,7 +51,9 @@ export function validarEvento(valores, { esNuevo = false } = {}) {
 }
 
 // `fechaMaxima`: el día del evento; la tarea no puede quedar después.
-export function validarSubtarea(valores, fechaMaxima = "") {
+// `fechaAntes`: al editar, la fecha que ya tenía. Si no cambia no se revisa,
+// igual que en el back, para que las tareas de antes se puedan seguir editando.
+export function validarSubtarea(valores, fechaMaxima = "", fechaAntes = "") {
   const errores = {};
 
   if (estaVacio(valores.titulo)) {
@@ -59,7 +61,11 @@ export function validarSubtarea(valores, fechaMaxima = "") {
   }
   if (estaVacio(valores.fecha_objetivo)) {
     errores.fecha_objetivo = "Indica la fecha objetivo.";
-  } else if (fechaMaxima && valores.fecha_objetivo > fechaMaxima) {
+  } else if (
+    fechaMaxima &&
+    valores.fecha_objetivo > fechaMaxima &&
+    valores.fecha_objetivo !== fechaAntes
+  ) {
     errores.fecha_objetivo = `Elige un día hasta el del evento (${formatearDiaCorto(fechaMaxima)}).`;
   }
   if (estaVacio(valores.horas_estimadas)) {
